@@ -3,56 +3,116 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle Financeiro</title>
+<meta name="theme-color" content="#123a6b">
+<title>Easy Money</title>
+<link rel="icon" type="image/png" href="icon.png">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
-body{margin:0;background:#f4f6f8;color:#222;}
-header{background:#1976D2;color:white;padding:16px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;}
-header h1{margin:0;font-size:1.3em;}
-.perfil-filter button{background:rgba(255,255,255,0.2);border:none;color:white;padding:6px 12px;margin-left:5px;border-radius:4px;cursor:pointer;}
-.perfil-filter button.active{background:white;color:#1976D2;font-weight:bold;}
-nav#tabs{display:flex;background:#0d47a1;overflow-x:auto;}
-.tab-btn{flex:1;padding:12px;background:none;border:none;color:white;cursor:pointer;white-space:nowrap;}
-.tab-btn.active{background:#1976D2;font-weight:bold;}
-main{padding:16px;}
+:root{
+  --azul:#123a6b;
+  --verde:#14b878;
+  --gradiente:linear-gradient(135deg,#123a6b,#14b878);
+  --bg:#f4f6fa;
+  --card:#ffffff;
+  --texto:#1f2937;
+  --vermelho:#e53e3e;
+  --cinza:#6b7280;
+}
+*{box-sizing:border-box;font-family:'Segoe UI',Arial,Helvetica,sans-serif;}
+body{margin:0;background:var(--bg);color:var(--texto);}
+button{border-radius:10px;border:none;cursor:pointer;font-family:inherit;transition:all 0.15s;font-size:0.95em;}
+button:hover{opacity:0.92;}
+input, select{border-radius:8px;border:1px solid #d1d5db;padding:10px 12px;font-family:inherit;font-size:0.95em;}
+input:focus, select:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(20,184,120,0.15);}
+
+header{background:var(--gradiente);color:white;padding:14px 20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-logo{height:40px;}
+.toggle-perfil{display:flex;background:rgba(255,255,255,0.2);border-radius:999px;padding:4px;}
+.toggle-btn{background:transparent;color:white;padding:8px 20px;border-radius:999px;font-weight:600;}
+.toggle-btn.active{background:white;color:var(--azul);}
+.header-actions{display:flex;gap:8px;}
+.icon-btn{background:rgba(255,255,255,0.2);color:white;padding:8px 16px;border-radius:10px;}
+
+nav#tabs{display:flex;gap:6px;background:white;padding:10px 16px;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+.tab-btn{background:var(--bg);color:var(--texto);padding:10px 18px;border-radius:999px;white-space:nowrap;font-weight:500;}
+.tab-btn.active{background:var(--gradiente);color:white;}
+
+main{padding:20px;max-width:1200px;margin:0 auto;}
 .tab-content{display:none;}
 .tab-content.active{display:block;}
-.cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
-.card{background:white;border-radius:8px;padding:16px;flex:1;min-width:200px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
-.card h3{margin:0 0 8px;font-size:0.9em;color:#666;}
-.card p{margin:0;font-size:1.4em;font-weight:bold;color:#1976D2;}
+
+.cards{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:20px;}
+.card{background:var(--card);border-radius:16px;padding:18px;flex:1;min-width:220px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.card h3{margin:0 0 8px;font-size:0.85em;color:var(--cinza);font-weight:600;}
+.card p{margin:0;font-size:1.5em;font-weight:bold;color:var(--azul);}
+
 .charts{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;}
-.chart-box{background:white;border-radius:8px;padding:16px;flex:1;min-width:280px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
-form{background:white;padding:16px;border-radius:8px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
-form input, form select{padding:8px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:120px;}
-form button{padding:8px 16px;background:#1976D2;color:white;border:none;border-radius:4px;cursor:pointer;}
-.table-wrapper{overflow-x:auto;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.chart-box{background:var(--card);border-radius:16px;padding:18px;flex:1;min-width:280px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.chart-box h3{margin-top:0;font-size:1em;color:var(--texto);}
+
+form{background:var(--card);padding:18px;border-radius:16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+form input, form select{flex:1;min-width:130px;}
+form button[type=submit]{background:var(--gradiente);color:white;padding:10px 24px;font-weight:600;}
+
+.table-wrapper{overflow-x:auto;background:var(--card);border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
 table{width:100%;border-collapse:collapse;min-width:600px;}
-th, td{padding:10px;text-align:left;border-bottom:1px solid #eee;font-size:0.9em;}
-th{background:#f0f0f0;}
-.receita{color:#2e7d32;font-weight:bold;}
-.despesa{color:#c62828;font-weight:bold;}
-.ok{color:#2e7d32;}
-.warn{color:#f9a825;}
-.over{color:#c62828;font-weight:bold;}
-#fixasPendentes{background:white;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:20px;}
-h2{color:#1976D2;}
-.btn-sair{background:rgba(0,0,0,0.2);border:none;color:white;padding:6px 12px;border-radius:4px;cursor:pointer;}
-.lock-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#1976D2;display:flex;align-items:center;justify-content:center;z-index:1000;}
-.lock-box{background:white;padding:30px;border-radius:12px;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
-.lock-box h2{margin-top:0;}
-.lock-box input{font-size:2em;text-align:center;letter-spacing:15px;padding:10px;width:200px;border:2px solid #1976D2;border-radius:8px;margin-bottom:15px;}
-.lock-box button{padding:10px 24px;background:#1976D2;color:white;border:none;border-radius:6px;font-size:1em;cursor:pointer;}
-#pinErro{color:#c62828;font-weight:bold;display:none;}
+th, td{padding:12px;text-align:left;border-bottom:1px solid #eee;font-size:0.9em;}
+th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
+.receita{color:var(--verde);font-weight:bold;}
+.despesa{color:var(--vermelho);font-weight:bold;}
+.transferencia{color:#2563eb;font-weight:bold;}
+.ok{color:var(--verde);}
+.warn{color:#f59e0b;}
+.over{color:var(--vermelho);font-weight:bold;}
+
+.pendentes-box{background:var(--card);padding:18px;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+
+.fab{position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;background:var(--gradiente);color:white;font-size:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.3);z-index:900;}
+
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+.modal-box{background:white;border-radius:20px;padding:24px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+.modal-box-lg{max-width:600px;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.modal-header h3{margin:0;color:var(--azul);}
+.modal-close{background:none;font-size:1.4em;color:var(--cinza);padding:4px 10px;}
+
+.tipo-selector{display:flex;gap:8px;margin-bottom:16px;}
+.tipo-btn{flex:1;padding:14px;border-radius:12px;background:#f0f1f3;color:var(--texto);font-weight:600;}
+.tipo-btn.despesa-btn.active{background:var(--vermelho);color:white;}
+.tipo-btn.receita-btn.active{background:var(--verde);color:white;}
+.tipo-btn.transferencia-btn.active{background:#2563eb;color:white;}
+
+#formMovimento, #formTransferencia{flex-direction:column;box-shadow:none;padding:0;}
+#formMovimento label, #formTransferencia label{font-size:0.85em;color:var(--cinza);font-weight:600;margin-bottom:-4px;}
+.subtipo-selector{display:flex;gap:8px;}
+.subtipo-btn{flex:1;padding:10px;border-radius:10px;background:#f0f1f3;color:var(--texto);}
+.subtipo-btn.active{background:var(--azul);color:white;}
+
+.config-section{margin-bottom:24px;}
+.config-section h4{color:var(--azul);border-bottom:2px solid var(--bg);padding-bottom:8px;}
+.config-list{margin-top:10px;max-height:180px;overflow-y:auto;}
+.config-list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9em;}
+.config-list-item button{background:var(--vermelho);color:white;padding:6px 12px;font-size:0.85em;}
+.widgets-config{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.widget-check-item label{display:flex;align-items:center;gap:8px;font-size:0.88em;}
+
+.lock-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--gradiente);display:flex;align-items:center;justify-content:center;z-index:2000;}
+.lock-box{background:white;padding:36px;border-radius:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+.lock-box img{height:70px;margin-bottom:16px;}
+.lock-box h2{margin-top:0;color:var(--azul);}
+.lock-box input{font-size:2em;text-align:center;letter-spacing:15px;padding:10px;width:220px;border:2px solid var(--azul);margin-bottom:15px;}
+.lock-box button{padding:12px 28px;background:var(--gradiente);color:white;font-size:1em;font-weight:600;}
+#pinErro{color:var(--vermelho);font-weight:bold;display:none;}
 </style>
 </head>
 <body>
 
 <div id="lockScreen" class="lock-screen">
   <div class="lock-box">
+    <img src="icon.png" alt="Easy Money">
     <h2>Digite o PIN</h2>
     <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="****" autofocus>
     <br>
@@ -64,14 +124,14 @@ h2{color:#1976D2;}
 <div id="appContent" style="display:none;">
 
 <header>
-  <h1>Controle Financeiro</h1>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div class="perfil-filter">
-       <button data-perfil="Todos" class="active">Todos</button>
-       <button data-perfil="Pessoal">Pessoal</button>
-       <button data-perfil="Empresa">Empresa</button>
-    </div>
-    <button class="btn-sair" id="btnSair">Sair</button>
+  <div class="brand"><img src="logo.png" alt="Easy Money" class="brand-logo"></div>
+  <div class="toggle-perfil">
+    <button class="toggle-btn active" data-perfil="Pessoal">Pessoal</button>
+    <button class="toggle-btn" data-perfil="Empresa">Empresa</button>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" id="btnConfig">Config</button>
+    <button class="icon-btn" id="btnSair">Sair</button>
   </div>
 </header>
 
@@ -80,30 +140,27 @@ h2{color:#1976D2;}
   <button data-tab="contas" class="tab-btn">Contas</button>
   <button data-tab="fixas" class="tab-btn">Contas Fixas</button>
   <button data-tab="lancamentos" class="tab-btn">Lançamentos</button>
-  <button data-tab="budget" class="tab-btn">Budget</button>
+  <button data-tab="transferencias" class="tab-btn">Transferências</button>
 </nav>
-
-<datalist id="categoriasList">
-  <option value="Moradia"><option value="Alimentação"><option value="Transporte">
-  <option value="Salário"><option value="Saúde"><option value="Educação">
-  <option value="Lazer"><option value="Serviços"><option value="Impostos">
-  <option value="Assinaturas"><option value="Investimentos"><option value="Outros">
-</datalist>
 
 <main>
 
   <section id="dashboard" class="tab-content active">
     <div class="cards">
-      <div class="card"><h3>Saldo Atual Pessoal</h3><p id="saldoAtualPessoal">R$ 0,00</p></div>
-      <div class="card"><h3>Saldo Atual Empresa</h3><p id="saldoAtualEmpresa">R$ 0,00</p></div>
-      <div class="card"><h3>Previsto Fim do Mês (Pessoal)</h3><p id="previstoPessoal">R$ 0,00</p></div>
-      <div class="card"><h3>Previsto Fim do Mês (Empresa)</h3><p id="previstoEmpresa">R$ 0,00</p></div>
+      <div class="card" id="widget-saldoPessoal"><h3>Saldo Atual Pessoal</h3><p id="saldoAtualPessoal">R$ 0,00</p></div>
+      <div class="card" id="widget-saldoEmpresa"><h3>Saldo Atual Empresa</h3><p id="saldoAtualEmpresa">R$ 0,00</p></div>
+      <div class="card" id="widget-previstoPessoal"><h3>Previsto Fim do Mês (Pessoal)</h3><p id="previstoPessoal">R$ 0,00</p></div>
+      <div class="card" id="widget-previstoEmpresa"><h3>Previsto Fim do Mês (Empresa)</h3><p id="previstoEmpresa">R$ 0,00</p></div>
     </div>
     <div class="charts">
-      <div class="chart-box"><h3>Despesas por Categoria (mês atual)</h3><canvas id="pieChart"></canvas></div>
-      <div class="chart-box"><h3>Receita x Despesa (últimos 6 meses)</h3><canvas id="barChart"></canvas></div>
+      <div class="chart-box" id="widget-despesasCategoria"><h3>Despesas por Categoria</h3><canvas id="pieChart"></canvas></div>
+      <div class="chart-box" id="widget-receitaDespesa30"><h3>Receita x Despesa - 30 dias</h3><canvas id="chart30"></canvas></div>
+      <div class="chart-box" id="widget-receitaDespesa60"><h3>Receita x Despesa - 60 dias</h3><canvas id="chart60"></canvas></div>
+      <div class="chart-box" id="widget-receitaDespesa90"><h3>Receita x Despesa - 90 dias</h3><canvas id="chart90"></canvas></div>
+      <div class="chart-box" id="widget-receitaDespesa6m"><h3>Receita x Despesa - 6 meses</h3><canvas id="chart6m"></canvas></div>
+      <div class="chart-box" id="widget-receitaDespesa1a"><h3>Receita x Despesa - 1 ano</h3><canvas id="chart1a"></canvas></div>
     </div>
-    <div id="fixasPendentes">
+    <div class="pendentes-box" id="widget-pendentesFixas">
       <h3>Contas Fixas Pendentes este mês</h3>
       <ul id="listaPendentes"></ul>
     </div>
@@ -111,20 +168,9 @@ h2{color:#1976D2;}
 
   <section id="contas" class="tab-content">
     <h2>Contas e Cartões</h2>
-    <form id="formConta">
-      <input type="text" id="contaNome" placeholder="Nome da conta" required>
-      <select id="contaTipo">
-        <option>Conta Corrente</option><option>Cartão de Crédito</option>
-        <option>Dinheiro</option><option>Investimento</option>
-      </select>
-      <select id="contaPerfil"><option>Pessoal</option><option>Empresa</option></select>
-      <input type="number" id="contaSaldoInicial" placeholder="Saldo inicial" step="0.01" required>
-      <input type="date" id="contaDataSaldo" required>
-      <button type="submit">Adicionar Conta</button>
-    </form>
     <div class="table-wrapper">
     <table id="tabelaContas">
-      <thead><tr><th>Nome</th><th>Tipo</th><th>Perfil</th><th>Saldo Atual</th><th>Previsto</th><th></th></tr></thead>
+      <thead><tr><th>Nome</th><th>Tipo</th><th>Saldo Atual</th><th>Previsto</th></tr></thead>
       <tbody></tbody>
     </table>
     </div>
@@ -135,18 +181,17 @@ h2{color:#1976D2;}
     <button id="btnGerarFixas">Gerar contas fixas deste mês</button><br><br>
     <form id="formFixa">
       <input type="text" id="fixaDescricao" placeholder="Descrição" required>
-      <select id="fixaPerfil"><option>Pessoal</option><option>Empresa</option></select>
       <select id="fixaContaId"></select>
-      <input type="text" list="categoriasList" id="fixaCategoria" placeholder="Categoria" required>
+      <select id="fixaCategoria"></select>
       <select id="fixaTipo"><option>Despesa</option><option>Receita</option></select>
       <input type="number" id="fixaValor" placeholder="Valor" step="0.01" required>
       <input type="number" id="fixaDia" placeholder="Dia venc. (1-31)" min="1" max="31" required>
-      <label><input type="checkbox" id="fixaAtivo" checked> Ativo</label>
-      <button type="submit">Adicionar Conta Fixa</button>
+      <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="fixaAtivo" checked style="width:auto;flex:none;"> Ativo</label>
+      <button type="submit">Adicionar</button>
     </form>
     <div class="table-wrapper">
     <table id="tabelaFixas">
-      <thead><tr><th>Descrição</th><th>Perfil</th><th>Conta</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th>Dia</th><th>Ativo</th><th></th><th></th></tr></thead>
+      <thead><tr><th>Descrição</th><th>Conta</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th>Dia</th><th>Ativo</th><th></th><th></th></tr></thead>
       <tbody></tbody>
     </table>
     </div>
@@ -154,43 +199,114 @@ h2{color:#1976D2;}
 
   <section id="lancamentos" class="tab-content">
     <h2>Lançamentos</h2>
-    <form id="formLancamento">
-      <input type="date" id="lancData" required>
-      <select id="lancPerfil"><option>Pessoal</option><option>Empresa</option></select>
-      <select id="lancContaId"></select>
-      <input type="text" list="categoriasList" id="lancCategoria" placeholder="Categoria" required>
-      <input type="text" id="lancDescricao" placeholder="Descrição" required>
-      <select id="lancTipo"><option>Despesa</option><option>Receita</option></select>
-      <input type="number" id="lancValor" placeholder="Valor" step="0.01" required>
-      <select id="lancStatus"><option>Pago</option><option>Previsto</option></select>
-      <button type="submit">Adicionar Lançamento</button>
-    </form>
     <div class="table-wrapper">
     <table id="tabelaLancamentos">
-      <thead><tr><th>Data</th><th>Perfil</th><th>Conta</th><th>Categoria</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>Data</th><th>Conta</th><th>Categoria</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Status</th><th></th></tr></thead>
       <tbody></tbody>
     </table>
     </div>
   </section>
 
-  <section id="budget" class="tab-content">
-    <h2>Budget (Orçamento)</h2>
-    <form id="formBudget">
-      <input type="month" id="budgetMes" required>
-      <select id="budgetPerfil"><option>Pessoal</option><option>Empresa</option></select>
-      <input type="text" list="categoriasList" id="budgetCategoria" placeholder="Categoria" required>
-      <input type="number" id="budgetValor" placeholder="Valor orçado" step="0.01" required>
-      <button type="submit">Adicionar Orçamento</button>
-    </form>
+  <section id="transferencias" class="tab-content">
+    <h2>Transferências entre Contas</h2>
     <div class="table-wrapper">
-    <table id="tabelaBudget">
-      <thead><tr><th>Mês</th><th>Perfil</th><th>Categoria</th><th>Orçado</th><th>Realizado</th><th>%</th><th></th></tr></thead>
+    <table id="tabelaTransferencias">
+      <thead><tr><th>Data</th><th>Origem</th><th>Destino</th><th>Valor</th><th>Descrição</th><th></th></tr></thead>
       <tbody></tbody>
     </table>
     </div>
   </section>
 
 </main>
+
+<button class="fab" id="btnAdicionar">+</button>
+
+<div id="modalAdd" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Nova Transação</h3><button class="modal-close" id="btnCloseAdd">&times;</button></div>
+    <div class="tipo-selector">
+      <button type="button" class="tipo-btn despesa-btn" data-tipo="Despesa">Despesa</button>
+      <button type="button" class="tipo-btn receita-btn" data-tipo="Receita">Receita</button>
+      <button type="button" class="tipo-btn transferencia-btn" data-tipo="Transferencia">Transferência</button>
+    </div>
+
+    <form id="formMovimento" style="display:none;">
+      <input type="hidden" id="movTipo">
+      <label>Data</label>
+      <input type="date" id="movData" required>
+      <label>Conta</label>
+      <select id="movConta" required></select>
+      <label>Categoria</label>
+      <select id="movCategoria" required></select>
+      <label>Tipo</label>
+      <div class="subtipo-selector">
+        <button type="button" class="subtipo-btn active" data-subtipo="Variável">Variável</button>
+        <button type="button" class="subtipo-btn" data-subtipo="Fixa">Fixa</button>
+      </div>
+      <label>Descrição</label>
+      <input type="text" id="movDescricao" required>
+      <label>Valor</label>
+      <input type="number" id="movValor" step="0.01" required>
+      <label>Status</label>
+      <select id="movStatus"><option>Pago</option><option>Previsto</option></select>
+      <button type="submit">Salvar</button>
+    </form>
+
+    <form id="formTransferencia" style="display:none;">
+      <label>Data</label>
+      <input type="date" id="transfData" required>
+      <label>Conta de Origem</label>
+      <select id="transfOrigem" required></select>
+      <label>Conta de Destino</label>
+      <select id="transfDestino" required></select>
+      <label>Valor</label>
+      <input type="number" id="transfValor" step="0.01" required>
+      <label>Descrição</label>
+      <input type="text" id="transfDescricao" required>
+      <button type="submit">Salvar Transferência</button>
+    </form>
+  </div>
+</div>
+
+<div id="modalConfig" class="modal-overlay" style="display:none;">
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header"><h3>Configurações</h3><button class="modal-close" id="btnCloseConfig">&times;</button></div>
+
+    <div class="config-section">
+      <h4>Contas</h4>
+      <form id="formContaConfig">
+        <input type="text" id="cfgContaNome" placeholder="Nome da conta" required>
+        <select id="cfgContaTipo">
+          <option>Conta Corrente</option><option>Cartão de Crédito</option>
+          <option>Dinheiro</option><option>Investimento</option>
+        </select>
+        <select id="cfgContaPerfil"><option>Pessoal</option><option>Empresa</option></select>
+        <input type="number" id="cfgContaSaldo" placeholder="Saldo inicial" step="0.01" required>
+        <input type="date" id="cfgContaData" required>
+        <button type="submit">Adicionar</button>
+      </form>
+      <div class="config-list" id="listaContasConfig"></div>
+    </div>
+
+    <div class="config-section">
+      <h4>Categorias</h4>
+      <form id="formCategoriaConfig">
+        <input type="text" id="cfgCategoriaNome" placeholder="Nome da categoria" required>
+        <select id="cfgCategoriaVisibilidade">
+          <option>Todos</option><option>Pessoal</option><option>Empresa</option>
+        </select>
+        <button type="submit">Adicionar</button>
+      </form>
+      <div class="config-list" id="listaCategoriasConfig"></div>
+    </div>
+
+    <div class="config-section">
+      <h4>Widgets do Dashboard</h4>
+      <div id="listaWidgetsConfig" class="widgets-config"></div>
+    </div>
+
+  </div>
+</div>
 
 </div>
 
@@ -208,12 +324,10 @@ function verificarPin(){
     document.getElementById('pinInput').value = '';
   }
 }
-
 if(localStorage.getItem('autenticado') === 'true'){
   document.getElementById('lockScreen').style.display = 'none';
   document.getElementById('appContent').style.display = 'block';
 }
-
 document.getElementById('btnEntrar').addEventListener('click', verificarPin);
 document.getElementById('pinInput').addEventListener('keyup', function(e){
   if(e.key === 'Enter') verificarPin();
@@ -237,46 +351,109 @@ var db = firebase.firestore();
 var contasRef = db.collection('contas');
 var lancamentosRef = db.collection('lancamentos');
 var contasFixasRef = db.collection('contasFixas');
-var budgetsRef = db.collection('budgets');
+var transferenciasRef = db.collection('transferencias');
+var categoriasRef = db.collection('categorias');
+var configRef = db.collection('config').doc('dashboard');
 
 var contas = [];
 var lancamentos = [];
 var contasFixas = [];
-var budgets = [];
-var perfilFiltro = 'Todos';
-var pieChart, barChart;
+var transferencias = [];
+var categorias = [];
+var perfilAtual = 'Pessoal';
+var dashboardConfig = {};
+var pieChart;
+
+var WIDGETS_DISPONIVEIS = [
+  {key:'saldoPessoal', label:'Saldo Atual Pessoal'},
+  {key:'saldoEmpresa', label:'Saldo Atual Empresa'},
+  {key:'previstoPessoal', label:'Previsto Fim do Mes - Pessoal'},
+  {key:'previstoEmpresa', label:'Previsto Fim do Mes - Empresa'},
+  {key:'despesasCategoria', label:'Despesas por Categoria'},
+  {key:'receitaDespesa30', label:'Receita x Despesa - 30 dias'},
+  {key:'receitaDespesa60', label:'Receita x Despesa - 60 dias'},
+  {key:'receitaDespesa90', label:'Receita x Despesa - 90 dias'},
+  {key:'receitaDespesa6m', label:'Receita x Despesa - 6 meses'},
+  {key:'receitaDespesa1a', label:'Receita x Despesa - 1 ano'},
+  {key:'pendentesFixas', label:'Contas Fixas Pendentes'}
+];
 
 function formatMoeda(v){
   return (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 }
 
+categoriasRef.get().then(function(snap){
+  if(snap.empty){
+    var defaults = [
+      {nome:'Moradia', visibilidade:'Pessoal'},
+      {nome:'Alimentação', visibilidade:'Todos'},
+      {nome:'Transporte', visibilidade:'Todos'},
+      {nome:'Salário', visibilidade:'Pessoal'},
+      {nome:'Pro-labore', visibilidade:'Todos'},
+      {nome:'Saúde', visibilidade:'Pessoal'},
+      {nome:'Educação', visibilidade:'Pessoal'},
+      {nome:'Lazer', visibilidade:'Pessoal'},
+      {nome:'Serviços', visibilidade:'Empresa'},
+      {nome:'Impostos', visibilidade:'Empresa'},
+      {nome:'Fornecedores', visibilidade:'Empresa'},
+      {nome:'Vendas', visibilidade:'Empresa'},
+      {nome:'Assinaturas', visibilidade:'Todos'},
+      {nome:'Investimentos', visibilidade:'Todos'},
+      {nome:'Outros', visibilidade:'Todos'}
+    ];
+    defaults.forEach(function(c){ categoriasRef.add(c); });
+  }
+});
+
 contasRef.onSnapshot(function(snap){
   contas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-  populateContaSelects();
   renderContas();
+  renderContasConfigList();
   renderDashboard();
 });
 lancamentosRef.onSnapshot(function(snap){
   lancamentos = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderLancamentos();
   renderDashboard();
-  renderBudget();
 });
 contasFixasRef.onSnapshot(function(snap){
   contasFixas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderContasFixas();
 });
-budgetsRef.onSnapshot(function(snap){
-  budgets = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-  renderBudget();
+transferenciasRef.onSnapshot(function(snap){
+  transferencias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  renderTransferencias();
+  renderContas();
+  renderDashboard();
 });
+categoriasRef.onSnapshot(function(snap){
+  categorias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  renderCategoriasConfigList();
+});
+configRef.onSnapshot(function(doc){
+  if(doc.exists){
+    dashboardConfig = doc.data();
+  } else {
+    dashboardConfig = {};
+    WIDGETS_DISPONIVEIS.forEach(function(w){ dashboardConfig[w.key] = true; });
+    configRef.set(dashboardConfig);
+  }
+  renderWidgetsConfig();
+  aplicarVisibilidadeWidgets();
+});
+
+function contaEhVisivel(conta){ return conta.perfil === perfilAtual; }
 
 function saldoAtualConta(contaId){
   var conta = contas.find(function(c){ return c.id === contaId; });
   if(!conta) return 0;
   var saldo = conta.saldoInicial;
   lancamentos.filter(function(l){ return l.contaId === contaId && l.status === 'Pago'; })
-    .forEach(function(l){ saldo += (l.tipo === 'Receita' ? l.valor : -l.valor); });
+    .forEach(function(l){ saldo += (l.tipoMov === 'Receita' ? l.valor : -l.valor); });
+  transferencias.forEach(function(t){
+    if(t.contaDestinoId === contaId) saldo += t.valor;
+    if(t.contaOrigemId === contaId) saldo -= t.valor;
+  });
   return saldo;
 }
 function saldoPrevistoConta(contaId){
@@ -286,7 +463,7 @@ function saldoPrevistoConta(contaId){
     if(l.contaId !== contaId || l.status !== 'Previsto') return false;
     var d = new Date(l.data+'T00:00:00');
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).forEach(function(l){ saldo += (l.tipo === 'Receita' ? l.valor : -l.valor); });
+  }).forEach(function(l){ saldo += (l.tipoMov === 'Receita' ? l.valor : -l.valor); });
   return saldo;
 }
 function saldoAtualPerfil(perfil){
@@ -304,11 +481,15 @@ function renderDashboard(){
   document.getElementById('previstoPessoal').textContent = formatMoeda(saldoPrevistoPerfil('Pessoal'));
   document.getElementById('previstoEmpresa').textContent = formatMoeda(saldoPrevistoPerfil('Empresa'));
   renderPieChart();
-  renderBarChart();
+  renderReceitaDespesaSimples('chart30', 30, 'chartObj30');
+  renderReceitaDespesaSimples('chart60', 60, 'chartObj60');
+  renderReceitaDespesaSimples('chart90', 90, 'chartObj90');
+  renderReceitaDespesaMensal('chart6m', 6, 'chartObj6m');
+  renderReceitaDespesaMensal('chart1a', 12, 'chartObj1a');
   renderPendentes();
 }
 function gerarCores(n){
-  var p = ['#4CAF50','#F44336','#2196F3','#FFC107','#9C27B0','#00BCD4','#FF9800','#795548','#607D8B','#E91E63'];
+  var p = ['#14b878','#e53e3e','#123a6b','#f59e0b','#9C27B0','#00BCD4','#FF9800','#795548','#607D8B','#E91E63'];
   var c = [];
   for(var i=0;i<n;i++) c.push(p[i % p.length]);
   return c;
@@ -318,88 +499,179 @@ function renderPieChart(){
   var dados = {};
   lancamentos.filter(function(l){
     var d = new Date(l.data+'T00:00:00');
-    var okPerfil = (perfilFiltro === 'Todos' || l.perfil === perfilFiltro);
-    return l.tipo === 'Despesa' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && okPerfil;
+    return l.perfil === perfilAtual && l.tipoMov === 'Despesa' && l.status === 'Pago'
+      && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).forEach(function(l){ dados[l.categoria] = (dados[l.categoria] || 0) + l.valor; });
   var labels = Object.keys(dados);
   var valores = Object.values(dados);
+  var canvas = document.getElementById('pieChart');
   if(pieChart) pieChart.destroy();
-  pieChart = new Chart(document.getElementById('pieChart'), {
+  pieChart = new Chart(canvas, {
     type: 'pie',
     data: { labels: labels, datasets: [{ data: valores, backgroundColor: gerarCores(labels.length) }] }
   });
 }
-function renderBarChart(){
+function totalPeriodo(dias, tipoMov){
+  var now = new Date();
+  var inicio = new Date(now.getTime() - dias*24*60*60*1000);
+  return lancamentos.filter(function(l){
+    if(l.perfil !== perfilAtual || l.tipoMov !== tipoMov || l.status !== 'Pago') return false;
+    var d = new Date(l.data+'T00:00:00');
+    return d >= inicio && d <= now;
+  }).reduce(function(s,l){ return s + l.valor; }, 0);
+}
+function renderReceitaDespesaSimples(canvasId, dias, chartVarName){
+  var receita = totalPeriodo(dias,'Receita');
+  var despesa = totalPeriodo(dias,'Despesa');
+  if(window[chartVarName]) window[chartVarName].destroy();
+  window[chartVarName] = new Chart(document.getElementById(canvasId), {
+    type:'bar',
+    data:{ labels:['Receita','Despesa'], datasets:[{ data:[receita,despesa], backgroundColor:['#14b878','#e53e3e'] }] },
+    options:{ plugins:{legend:{display:false}} }
+  });
+}
+function renderReceitaDespesaMensal(canvasId, numMeses, chartVarName){
   var meses = [], receitas = [], despesas = [];
   var now = new Date();
-  for(var i=5;i>=0;i--){
+  for(var i=numMeses-1;i>=0;i--){
     var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-    meses.push(d.toLocaleDateString('pt-BR', {month:'short', year:'2-digit'}));
-    var rec = 0, desp = 0;
+    meses.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));
+    var rec=0, desp=0;
     lancamentos.forEach(function(l){
+      if(l.perfil !== perfilAtual || l.status !== 'Pago') return;
       var ld = new Date(l.data+'T00:00:00');
-      var okPerfil = (perfilFiltro === 'Todos' || l.perfil === perfilFiltro);
-      if(ld.getMonth() === d.getMonth() && ld.getFullYear() === d.getFullYear() && okPerfil){
-        if(l.tipo === 'Receita') rec += l.valor; else desp += l.valor;
+      if(ld.getMonth()===d.getMonth() && ld.getFullYear()===d.getFullYear()){
+        if(l.tipoMov==='Receita') rec+=l.valor; else desp+=l.valor;
       }
     });
-    receitas.push(rec);
-    despesas.push(desp);
+    receitas.push(rec); despesas.push(desp);
   }
-  if(barChart) barChart.destroy();
-  barChart = new Chart(document.getElementById('barChart'), {
-    type: 'bar',
-    data: {
-      labels: meses,
-      datasets: [
-        { label: 'Receita', data: receitas, backgroundColor: '#4CAF50' },
-        { label: 'Despesa', data: despesas, backgroundColor: '#F44336' }
-      ]
-    }
+  if(window[chartVarName]) window[chartVarName].destroy();
+  window[chartVarName] = new Chart(document.getElementById(canvasId), {
+    type:'bar',
+    data:{labels:meses, datasets:[
+      {label:'Receita', data:receitas, backgroundColor:'#14b878'},
+      {label:'Despesa', data:despesas, backgroundColor:'#e53e3e'}
+    ]}
   });
 }
 function renderPendentes(){
   var now = new Date();
   var lista = lancamentos.filter(function(l){
     var d = new Date(l.data+'T00:00:00');
-    var okPerfil = (perfilFiltro === 'Todos' || l.perfil === perfilFiltro);
-    return l.status === 'Previsto' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && okPerfil;
+    return l.perfil === perfilAtual && l.status === 'Previsto'
+      && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
   var ul = document.getElementById('listaPendentes');
   ul.innerHTML = lista.length ? '' : '<li>Nenhuma pendencia</li>';
   lista.forEach(function(l){
     var li = document.createElement('li');
-    li.textContent = l.data + ' - ' + l.descricao + ' (' + formatMoeda(l.valor) + ') [' + l.perfil + ']';
+    li.textContent = l.data + ' - ' + l.descricao + ' (' + formatMoeda(l.valor) + ')';
     ul.appendChild(li);
   });
 }
-
-document.getElementById('formConta').addEventListener('submit', function(e){
-  e.preventDefault();
-  contasRef.add({
-    nome: document.getElementById('contaNome').value,
-    tipo: document.getElementById('contaTipo').value,
-    perfil: document.getElementById('contaPerfil').value,
-    saldoInicial: parseFloat(document.getElementById('contaSaldoInicial').value),
-    dataSaldoInicial: document.getElementById('contaDataSaldo').value
+function aplicarVisibilidadeWidgets(){
+  WIDGETS_DISPONIVEIS.forEach(function(w){
+    var el = document.getElementById('widget-'+w.key);
+    if(el) el.style.display = (dashboardConfig[w.key] !== false) ? '' : 'none';
   });
-  e.target.reset();
-});
+}
+function renderWidgetsConfig(){
+  var container = document.getElementById('listaWidgetsConfig');
+  container.innerHTML = '';
+  WIDGETS_DISPONIVEIS.forEach(function(w){
+    var div = document.createElement('div');
+    div.className = 'widget-check-item';
+    var checked = dashboardConfig[w.key] !== false ? 'checked' : '';
+    div.innerHTML = '<label><input type="checkbox" data-widget="'+w.key+'" '+checked+'> '+w.label+'</label>';
+    container.appendChild(div);
+  });
+  container.querySelectorAll('input[type=checkbox]').forEach(function(chk){
+    chk.addEventListener('change', function(){
+      var key = this.getAttribute('data-widget');
+      var upd = {};
+      upd[key] = this.checked;
+      configRef.set(upd, {merge:true});
+    });
+  });
+}
+
 function renderContas(){
   var tbody = document.querySelector('#tabelaContas tbody');
   tbody.innerHTML = '';
-  contas.filter(function(c){ return perfilFiltro === 'Todos' || c.perfil === perfilFiltro; }).forEach(function(c){
+  contas.filter(contaEhVisivel).forEach(function(c){
     var tr = document.createElement('tr');
-    tr.innerHTML = '<td>'+c.nome+'</td><td>'+c.tipo+'</td><td>'+c.perfil+'</td>'+
-      '<td>'+formatMoeda(saldoAtualConta(c.id))+'</td><td>'+formatMoeda(saldoPrevistoConta(c.id))+'</td>'+
-      '<td><button onclick="excluirConta(\''+c.id+'\')">Excluir</button></td>';
+    tr.innerHTML = '<td>'+c.nome+'</td><td>'+c.tipo+'</td>'+
+      '<td>'+formatMoeda(saldoAtualConta(c.id))+'</td><td>'+formatMoeda(saldoPrevistoConta(c.id))+'</td>';
     tbody.appendChild(tr);
   });
 }
 function excluirConta(id){ if(confirm('Excluir esta conta?')) contasRef.doc(id).delete(); }
-function populateContaSelects(){
-  [document.getElementById('lancContaId'), document.getElementById('fixaContaId')].forEach(function(sel){
-    if(!sel) return;
+function renderContasConfigList(){
+  var container = document.getElementById('listaContasConfig');
+  if(!container) return;
+  container.innerHTML = '';
+  contas.forEach(function(c){
+    var div = document.createElement('div');
+    div.className = 'config-list-item';
+    div.innerHTML = '<span>'+c.nome+' - '+c.tipo+' ('+c.perfil+')</span><button onclick="excluirConta(\''+c.id+'\')">Excluir</button>';
+    container.appendChild(div);
+  });
+}
+document.getElementById('formContaConfig').addEventListener('submit', function(e){
+  e.preventDefault();
+  contasRef.add({
+    nome: document.getElementById('cfgContaNome').value,
+    tipo: document.getElementById('cfgContaTipo').value,
+    perfil: document.getElementById('cfgContaPerfil').value,
+    saldoInicial: parseFloat(document.getElementById('cfgContaSaldo').value),
+    dataSaldoInicial: document.getElementById('cfgContaData').value
+  });
+  e.target.reset();
+});
+
+function excluirCategoria(id){ if(confirm('Excluir esta categoria?')) categoriasRef.doc(id).delete(); }
+function renderCategoriasConfigList(){
+  var container = document.getElementById('listaCategoriasConfig');
+  if(!container) return;
+  container.innerHTML = '';
+  categorias.forEach(function(c){
+    var div = document.createElement('div');
+    div.className = 'config-list-item';
+    div.innerHTML = '<span>'+c.nome+' ('+c.visibilidade+')</span><button onclick="excluirCategoria(\''+c.id+'\')">Excluir</button>';
+    container.appendChild(div);
+  });
+}
+document.getElementById('formCategoriaConfig').addEventListener('submit', function(e){
+  e.preventDefault();
+  categoriasRef.add({
+    nome: document.getElementById('cfgCategoriaNome').value,
+    visibilidade: document.getElementById('cfgCategoriaVisibilidade').value
+  });
+  e.target.reset();
+});
+
+function populateContaSelectFiltrado(sel){
+  sel.innerHTML = '';
+  contas.filter(contaEhVisivel).forEach(function(c){
+    var opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    sel.appendChild(opt);
+  });
+}
+function populateCategoriaSelectFiltrado(sel){
+  sel.innerHTML = '';
+  categorias.filter(function(c){ return c.visibilidade === perfilAtual || c.visibilidade === 'Todos'; })
+    .forEach(function(c){
+      var opt = document.createElement('option');
+      opt.value = c.nome;
+      opt.textContent = c.nome;
+      sel.appendChild(opt);
+    });
+}
+function populateTransferSelects(){
+  [document.getElementById('transfOrigem'), document.getElementById('transfDestino')].forEach(function(sel){
     sel.innerHTML = '';
     contas.forEach(function(c){
       var opt = document.createElement('option');
@@ -414,10 +686,10 @@ document.getElementById('formFixa').addEventListener('submit', function(e){
   e.preventDefault();
   contasFixasRef.add({
     descricao: document.getElementById('fixaDescricao').value,
-    perfil: document.getElementById('fixaPerfil').value,
+    perfil: perfilAtual,
     contaId: document.getElementById('fixaContaId').value,
     categoria: document.getElementById('fixaCategoria').value,
-    tipo: document.getElementById('fixaTipo').value,
+    tipoMov: document.getElementById('fixaTipo').value,
     valor: parseFloat(document.getElementById('fixaValor').value),
     diaVencimento: parseInt(document.getElementById('fixaDia').value),
     ativo: document.getElementById('fixaAtivo').checked
@@ -428,11 +700,11 @@ document.getElementById('formFixa').addEventListener('submit', function(e){
 function renderContasFixas(){
   var tbody = document.querySelector('#tabelaFixas tbody');
   tbody.innerHTML = '';
-  contasFixas.filter(function(f){ return perfilFiltro === 'Todos' || f.perfil === perfilFiltro; }).forEach(function(f){
+  contasFixas.filter(function(f){ return f.perfil === perfilAtual; }).forEach(function(f){
     var conta = contas.find(function(c){ return c.id === f.contaId; });
     var tr = document.createElement('tr');
-    tr.innerHTML = '<td>'+f.descricao+'</td><td>'+f.perfil+'</td><td>'+(conta?conta.nome:'-')+'</td>'+
-      '<td>'+f.categoria+'</td><td>'+f.tipo+'</td><td>'+formatMoeda(f.valor)+'</td>'+
+    tr.innerHTML = '<td>'+f.descricao+'</td><td>'+(conta?conta.nome:'-')+'</td>'+
+      '<td>'+f.categoria+'</td><td>'+f.tipoMov+'</td><td>'+formatMoeda(f.valor)+'</td>'+
       '<td>'+f.diaVencimento+'</td><td>'+(f.ativo?'Sim':'Nao')+'</td>'+
       '<td><button onclick="gerarLancamentoFixa(\''+f.id+'\')">Gerar</button></td>'+
       '<td><button onclick="excluirFixa(\''+f.id+'\')">Excluir</button></td>';
@@ -449,13 +721,13 @@ function gerarLancamentoFixa(fixaId){
   var data = now.getFullYear() + '-' + mesStr + '-' + diaStr;
   lancamentosRef.add({
     data: data, perfil: f.perfil, contaId: f.contaId, categoria: f.categoria,
-    descricao: f.descricao, tipo: f.tipo, valor: f.valor, status: 'Previsto',
+    descricao: f.descricao, tipoMov: f.tipoMov, subtipo:'Fixa', valor: f.valor, status: 'Previsto',
     origem: 'Fixo', fixaId: f.id
   });
 }
 function gerarTodasFixasDoMes(){
   var now = new Date();
-  contasFixas.filter(function(f){ return f.ativo; }).forEach(function(f){
+  contasFixas.filter(function(f){ return f.ativo && f.perfil === perfilAtual; }).forEach(function(f){
     var jaExiste = lancamentos.some(function(l){
       if(l.fixaId !== f.id) return false;
       var d = new Date(l.data+'T00:00:00');
@@ -467,32 +739,18 @@ function gerarTodasFixasDoMes(){
 }
 document.getElementById('btnGerarFixas').addEventListener('click', gerarTodasFixasDoMes);
 
-document.getElementById('formLancamento').addEventListener('submit', function(e){
-  e.preventDefault();
-  lancamentosRef.add({
-    data: document.getElementById('lancData').value,
-    perfil: document.getElementById('lancPerfil').value,
-    contaId: document.getElementById('lancContaId').value,
-    categoria: document.getElementById('lancCategoria').value,
-    descricao: document.getElementById('lancDescricao').value,
-    tipo: document.getElementById('lancTipo').value,
-    valor: parseFloat(document.getElementById('lancValor').value),
-    status: document.getElementById('lancStatus').value
-  });
-  e.target.reset();
-});
 function renderLancamentos(){
   var tbody = document.querySelector('#tabelaLancamentos tbody');
   tbody.innerHTML = '';
-  lancamentos.filter(function(l){ return perfilFiltro === 'Todos' || l.perfil === perfilFiltro; })
+  lancamentos.filter(function(l){ return l.perfil === perfilAtual; })
     .sort(function(a,b){ return b.data.localeCompare(a.data); })
     .forEach(function(l){
       var conta = contas.find(function(c){ return c.id === l.contaId; });
       var tr = document.createElement('tr');
-      var classeTipo = l.tipo === 'Receita' ? 'receita' : 'despesa';
-      tr.innerHTML = '<td>'+l.data+'</td><td>'+l.perfil+'</td><td>'+(conta?conta.nome:'-')+'</td>'+
+      var classeTipo = l.tipoMov === 'Receita' ? 'receita' : 'despesa';
+      tr.innerHTML = '<td>'+l.data+'</td><td>'+(conta?conta.nome:'-')+'</td>'+
         '<td>'+l.categoria+'</td><td>'+l.descricao+'</td>'+
-        '<td class="'+classeTipo+'">'+l.tipo+'</td>'+
+        '<td class="'+classeTipo+'">'+l.tipoMov+'</td>'+
         '<td>'+formatMoeda(l.valor)+'</td>'+
         '<td><button onclick="togglePago(\''+l.id+'\')">'+l.status+'</button></td>'+
         '<td><button onclick="excluirLancamento(\''+l.id+'\')">Excluir</button></td>';
@@ -505,61 +763,130 @@ function togglePago(id){
   lancamentosRef.doc(id).update({ status: l.status === 'Pago' ? 'Previsto' : 'Pago' });
 }
 
-document.getElementById('formBudget').addEventListener('submit', function(e){
-  e.preventDefault();
-  budgetsRef.add({
-    mes: document.getElementById('budgetMes').value,
-    perfil: document.getElementById('budgetPerfil').value,
-    categoria: document.getElementById('budgetCategoria').value,
-    valorOrcado: parseFloat(document.getElementById('budgetValor').value)
-  });
-  e.target.reset();
-});
-function renderBudget(){
-  var tbody = document.querySelector('#tabelaBudget tbody');
+function renderTransferencias(){
+  var tbody = document.querySelector('#tabelaTransferencias tbody');
   tbody.innerHTML = '';
-  budgets.forEach(function(b){
-    var partes = b.mes.split('-');
-    var ano = partes[0], mes = partes[1];
-    var realizado = lancamentos.filter(function(l){
-      var d = new Date(l.data+'T00:00:00');
-      return l.categoria === b.categoria && l.perfil === b.perfil && l.tipo === 'Despesa'
-        && (d.getMonth()+1) === parseInt(mes) && d.getFullYear() === parseInt(ano);
-    }).reduce(function(s,l){ return s + l.valor; }, 0);
-    var pct = b.valorOrcado > 0 ? (realizado / b.valorOrcado * 100) : 0;
-    var classePct = pct > 100 ? 'over' : (pct > 70 ? 'warn' : 'ok');
+  transferencias.filter(function(t){
+    var origem = contas.find(function(c){ return c.id === t.contaOrigemId; });
+    var destino = contas.find(function(c){ return c.id === t.contaDestinoId; });
+    return (origem && origem.perfil === perfilAtual) || (destino && destino.perfil === perfilAtual);
+  }).sort(function(a,b){ return b.data.localeCompare(a.data); }).forEach(function(t){
+    var origem = contas.find(function(c){ return c.id === t.contaOrigemId; });
+    var destino = contas.find(function(c){ return c.id === t.contaDestinoId; });
     var tr = document.createElement('tr');
-    tr.innerHTML = '<td>'+b.mes+'</td><td>'+b.perfil+'</td><td>'+b.categoria+'</td>'+
-      '<td>'+formatMoeda(b.valorOrcado)+'</td><td>'+formatMoeda(realizado)+'</td>'+
-      '<td class="'+classePct+'">'+pct.toFixed(0)+'%</td>'+
-      '<td><button onclick="excluirBudget(\''+b.id+'\')">Excluir</button></td>';
+    tr.innerHTML = '<td>'+t.data+'</td><td>'+(origem?origem.nome:'-')+'</td>'+
+      '<td>'+(destino?destino.nome:'-')+'</td>'+
+      '<td class="transferencia">'+formatMoeda(t.valor)+'</td><td>'+t.descricao+'</td>'+
+      '<td><button onclick="excluirTransferencia(\''+t.id+'\')">Excluir</button></td>';
     tbody.appendChild(tr);
   });
 }
-function excluirBudget(id){ if(confirm('Excluir este orcamento?')) budgetsRef.doc(id).delete(); }
+function excluirTransferencia(id){ if(confirm('Excluir esta transferencia?')) transferenciasRef.doc(id).delete(); }
 
-var tabButtons = document.querySelectorAll('.tab-btn');
-for(var t=0; t<tabButtons.length; t++){
-  tabButtons[t].addEventListener('click', function(){
-    var alvo = this.getAttribute('data-tab');
+function abrirModalAdd(){
+  document.getElementById('modalAdd').style.display = 'flex';
+  document.getElementById('formMovimento').style.display = 'none';
+  document.getElementById('formTransferencia').style.display = 'none';
+  document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('active'); });
+  populateTransferSelects();
+}
+function fecharModalAdd(){ document.getElementById('modalAdd').style.display = 'none'; }
+document.getElementById('btnAdicionar').addEventListener('click', abrirModalAdd);
+document.getElementById('btnCloseAdd').addEventListener('click', fecharModalAdd);
+
+document.querySelectorAll('.tipo-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var tipo = btn.getAttribute('data-tipo');
+    document.getElementById('movTipo').value = tipo;
+    if(tipo === 'Transferencia'){
+      document.getElementById('formMovimento').style.display = 'none';
+      document.getElementById('formTransferencia').style.display = 'flex';
+    } else {
+      document.getElementById('formTransferencia').style.display = 'none';
+      document.getElementById('formMovimento').style.display = 'flex';
+      populateContaSelectFiltrado(document.getElementById('movConta'));
+      populateCategoriaSelectFiltrado(document.getElementById('movCategoria'));
+    }
+  });
+});
+document.querySelectorAll('.subtipo-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.subtipo-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+  });
+});
+document.getElementById('formMovimento').addEventListener('submit', function(e){
+  e.preventDefault();
+  var subtipoBtn = document.querySelector('.subtipo-btn.active');
+  var subtipo = subtipoBtn ? subtipoBtn.getAttribute('data-subtipo') : 'Variável';
+  lancamentosRef.add({
+    data: document.getElementById('movData').value,
+    perfil: perfilAtual,
+    contaId: document.getElementById('movConta').value,
+    categoria: document.getElementById('movCategoria').value,
+    subtipo: subtipo,
+    descricao: document.getElementById('movDescricao').value,
+    tipoMov: document.getElementById('movTipo').value,
+    valor: parseFloat(document.getElementById('movValor').value),
+    status: document.getElementById('movStatus').value
+  });
+  fecharModalAdd();
+  e.target.reset();
+});
+document.getElementById('formTransferencia').addEventListener('submit', function(e){
+  e.preventDefault();
+  var origem = document.getElementById('transfOrigem').value;
+  var destino = document.getElementById('transfDestino').value;
+  if(origem === destino){ alert('Escolha contas diferentes.'); return; }
+  transferenciasRef.add({
+    data: document.getElementById('transfData').value,
+    contaOrigemId: origem,
+    contaDestinoId: destino,
+    valor: parseFloat(document.getElementById('transfValor').value),
+    descricao: document.getElementById('transfDescricao').value
+  });
+  fecharModalAdd();
+  e.target.reset();
+});
+
+function abrirModalConfig(){
+  document.getElementById('modalConfig').style.display = 'flex';
+  renderContasConfigList();
+  renderCategoriasConfigList();
+}
+function fecharModalConfig(){ document.getElementById('modalConfig').style.display = 'none'; }
+document.getElementById('btnConfig').addEventListener('click', abrirModalConfig);
+document.getElementById('btnCloseConfig').addEventListener('click', fecharModalConfig);
+
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var alvo = btn.getAttribute('data-tab');
     document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
     document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
-    this.classList.add('active');
+    btn.classList.add('active');
     document.getElementById(alvo).classList.add('active');
+    if(alvo === 'fixas'){
+      populateContaSelectFiltrado(document.getElementById('fixaContaId'));
+      populateCategoriaSelectFiltrado(document.getElementById('fixaCategoria'));
+    }
   });
-}
-var perfilButtons = document.querySelectorAll('.perfil-filter button');
-for(var p=0; p<perfilButtons.length; p++){
-  perfilButtons[p].addEventListener('click', function(){
-    document.querySelectorAll('.perfil-filter button').forEach(function(b){ b.classList.remove('active'); });
-    this.classList.add('active');
-    perfilFiltro = this.getAttribute('data-perfil');
+});
+document.querySelectorAll('.toggle-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    perfilAtual = btn.getAttribute('data-perfil');
     renderContas();
     renderLancamentos();
     renderContasFixas();
+    renderTransferencias();
     renderDashboard();
+    populateContaSelectFiltrado(document.getElementById('fixaContaId'));
+    populateCategoriaSelectFiltrado(document.getElementById('fixaCategoria'));
   });
-}
+});
 </script>
 </body>
 </html>
