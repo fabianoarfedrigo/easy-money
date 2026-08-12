@@ -7,6 +7,7 @@
 <title>Easy Money</title>
 <link rel="icon" type="image/png" href="icon.png">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -30,9 +31,9 @@ button:hover{opacity:0.92;}
 input, select{border-radius:8px;border:1px solid #d1d5db;padding:10px 12px;font-family:inherit;font-size:0.95em;}
 input:focus, select:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(20,184,120,0.15);}
 
-header{position:relative;background:var(--gradiente);color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);flex-wrap:wrap;}
-.brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);}
-.brand-logo{height:80px;}
+header{position:relative;background:var(--gradiente);color:white;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);flex-wrap:wrap;}
+.brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 18px;}
+.brand-logo{height:64px;display:block;}
 .toggle-perfil{display:flex;background:rgba(255,255,255,0.2);border-radius:999px;padding:4px;z-index:2;}
 .toggle-btn{background:transparent;color:white;padding:8px 20px;border-radius:999px;font-weight:600;}
 .toggle-btn.active{background:white;color:var(--azul);}
@@ -100,7 +101,7 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 .config-tab-content{display:none;}
 .config-tab-content.active{display:block;}
 .config-list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.config-list-header h4{margin:0;color:var(--azul);}
+.config-list-header h4, .config-list-header h2{margin:0;color:var(--azul);}
 .btn-secundario{background:#f0f1f3;color:var(--texto);padding:8px 14px;}
 .btn-icon-add{background:var(--gradiente);color:white;width:36px;height:36px;font-size:1.3em;line-height:1;margin-left:6px;}
 .config-list{max-height:260px;overflow-y:auto;}
@@ -117,9 +118,9 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 .lock-box{background:white;padding:36px;border-radius:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
 .lock-box img{height:70px;margin-bottom:16px;}
 .lock-box h2{margin-top:0;color:var(--azul);}
-.lock-box input{font-size:2em;text-align:center;letter-spacing:15px;padding:10px;width:220px;border:2px solid var(--azul);margin-bottom:15px;}
-.lock-box button{padding:12px 28px;background:var(--gradiente);color:white;font-size:1em;font-weight:600;}
-#pinErro{color:var(--cor-variavel);font-weight:bold;display:none;}
+.campo-login{font-size:1em;text-align:left;width:260px;padding:12px;margin-bottom:12px;display:block;}
+.lock-box button{padding:12px 28px;background:var(--gradiente);color:white;font-size:1em;font-weight:600;margin-top:6px;}
+#loginErro{color:var(--cor-variavel);font-weight:bold;display:none;margin-top:10px;}
 </style>
 </head>
 <body>
@@ -127,11 +128,11 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 <div id="lockScreen" class="lock-screen">
   <div class="lock-box">
     <img src="icon.png" alt="Easy Money">
-    <h2>Digite o PIN</h2>
-    <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="****" autofocus>
-    <br>
+    <h2>Entrar</h2>
+    <input type="email" id="loginEmail" class="campo-login" placeholder="Email" required>
+    <input type="password" id="loginSenha" class="campo-login" placeholder="Senha" required>
     <button id="btnEntrar">Entrar</button>
-    <p id="pinErro">PIN incorreto, tente novamente.</p>
+    <p id="loginErro">Email ou senha incorretos.</p>
   </div>
 </div>
 
@@ -162,13 +163,24 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
   </section>
 
   <section id="contas" class="tab-content">
-    <h2>Contas</h2>
-    <div class="table-wrapper">
-    <table id="tabelaContas">
-      <thead><tr><th>Descrição</th><th>Tipo</th><th>Perfil</th><th>Saldo Atual</th><th>Saldo Previsto</th></tr></thead>
-      <tbody></tbody>
-    </table>
+    <div class="config-list-header">
+      <h2>Contas</h2>
+      <div><button id="btnEditarContasTab" class="btn-secundario">Editar</button><button id="btnAddContaTab" class="btn-icon-add">+</button></div>
     </div>
+    <form id="formContaTab" style="display:none;">
+      <input type="hidden" id="contaTabId">
+      <input type="text" id="contaTabNome" placeholder="Descrição" required>
+      <select id="contaTabTipo"><option>Conta Corrente</option><option>Poupança</option><option>Investimento</option></select>
+      <input type="number" id="contaTabSaldo" placeholder="Saldo inicial" step="0.01" required>
+      <button type="submit" id="btnSalvarContaTab">Adicionar</button>
+    </form>
+    <div class="table-wrapper" id="wrapperTabelaContas">
+      <table id="tabelaContas">
+        <thead><tr><th>Descrição</th><th>Tipo</th><th>Saldo Atual</th><th>Saldo Previsto</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="config-list" id="listaContasEdicao" style="display:none;"></div>
   </section>
 
   <section id="transacoes" class="tab-content">
@@ -266,29 +278,12 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
     <div class="modal-header"><h3>Configurações</h3><button class="modal-close" id="btnCloseConfig">&times;</button></div>
 
     <div class="config-tabs">
-      <button class="config-tab-btn active" data-ctab="ctabContas">Contas</button>
-      <button class="config-tab-btn" data-ctab="ctabCategorias">Categorias</button>
+      <button class="config-tab-btn active" data-ctab="ctabCategorias">Categorias</button>
       <button class="config-tab-btn" data-ctab="ctabWidgets">Widgets</button>
       <button class="config-tab-btn" data-ctab="ctabCores">Cores</button>
     </div>
 
-    <div id="ctabContas" class="config-tab-content active">
-      <div class="config-list-header">
-        <h4>Contas</h4>
-        <div><button id="btnEditarContas" class="btn-secundario">Editar</button><button id="btnAddConta" class="btn-icon-add">+</button></div>
-      </div>
-      <form id="formContaConfig" style="display:none;">
-        <input type="hidden" id="cfgContaId">
-        <input type="text" id="cfgContaNome" placeholder="Descrição" required>
-        <select id="cfgContaTipo"><option>Conta Corrente</option><option>Poupança</option><option>Investimento</option></select>
-        <select id="cfgContaPerfil"><option>Pessoal</option><option>Empresa</option></select>
-        <input type="number" id="cfgContaSaldo" placeholder="Saldo inicial" step="0.01" required>
-        <button type="submit" id="btnSalvarConta">Adicionar</button>
-      </form>
-      <div class="config-list" id="listaContasConfig"></div>
-    </div>
-
-    <div id="ctabCategorias" class="config-tab-content">
+    <div id="ctabCategorias" class="config-tab-content active">
       <div class="config-list-header">
         <h4>Categorias</h4>
         <div><button id="btnEditarCategorias" class="btn-secundario">Editar</button><button id="btnAddCategoria" class="btn-icon-add">+</button></div>
@@ -296,7 +291,7 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
       <form id="formCategoriaConfig" style="display:none;">
         <input type="hidden" id="cfgCategoriaId">
         <input type="text" id="cfgCategoriaNome" placeholder="Nome da categoria" required>
-        <select id="cfgCategoriaVisibilidade"><option>Todos</option><option>Pessoal</option><option>Empresa</option></select>
+        <select id="cfgCategoriaVisibilidade"><option>Pessoal</option><option>Empresa</option></select>
         <button type="submit" id="btnSalvarCategoria">Adicionar</button>
       </form>
       <div class="config-list" id="listaCategoriasConfig"></div>
@@ -321,36 +316,34 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 </div>
 
 <script>
-var PIN_CORRETO = "1234";
-function verificarPin(){
-  var val = document.getElementById('pinInput').value;
-  if(val === PIN_CORRETO){
-    localStorage.setItem('autenticado','true');
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('appContent').style.display = 'block';
-  } else {
-    document.getElementById('pinErro').style.display = 'block';
-    document.getElementById('pinInput').value = '';
-  }
-}
-if(localStorage.getItem('autenticado') === 'true'){
-  document.getElementById('lockScreen').style.display = 'none';
-  document.getElementById('appContent').style.display = 'block';
-}
-document.getElementById('btnEntrar').addEventListener('click', verificarPin);
-document.getElementById('pinInput').addEventListener('keyup', function(e){ if(e.key === 'Enter') verificarPin(); });
-document.getElementById('btnSair').addEventListener('click', function(){ localStorage.removeItem('autenticado'); location.reload(); });
-
-var firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyDMZAt_Ni9LvgJkLooq2geBOZAwwWCPa18",
   authDomain: "easy-money-40195.firebaseapp.com",
   projectId: "easy-money-40195",
   storageBucket: "easy-money-40195.firebasestorage.app",
   messagingSenderId: "976389981631",
   appId: "1:976389981631:web:6cc799e1a0f838777bcd0a"
-};
-firebase.initializeApp(firebaseConfig);
+});
 var db = firebase.firestore();
+
+firebase.auth().onAuthStateChanged(function(user){
+  if(user){
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
+  } else {
+    document.getElementById('lockScreen').style.display = 'flex';
+    document.getElementById('appContent').style.display = 'none';
+  }
+});
+document.getElementById('btnEntrar').addEventListener('click', function(){
+  var email = document.getElementById('loginEmail').value;
+  var senha = document.getElementById('loginSenha').value;
+  document.getElementById('loginErro').style.display = 'none';
+  firebase.auth().signInWithEmailAndPassword(email, senha).catch(function(){
+    document.getElementById('loginErro').style.display = 'block';
+  });
+});
+document.getElementById('btnSair').addEventListener('click', function(){ firebase.auth().signOut(); });
 
 var contasRef = db.collection('contas');
 var lancamentosRef = db.collection('lancamentos');
@@ -363,13 +356,11 @@ var configCoresRef = db.collection('config').doc('cores');
 var contas = [], lancamentos = [], transferencias = [], categorias = [], recorrencias = [];
 var perfilAtual = 'Pessoal';
 var dashboardConfig = {};
-var modoEdicaoContas = false, modoEdicaoCategorias = false;
+var modoEdicaoContasTab = false, modoEdicaoCategorias = false;
 
 var WIDGETS_DISPONIVEIS = [
-  {key:'saldoPessoal', label:'Saldo Atual Pessoal', tipo:'card'},
-  {key:'saldoEmpresa', label:'Saldo Atual Empresa', tipo:'card'},
-  {key:'previstoPessoal', label:'Previsto Fim do Mes - Pessoal', tipo:'card'},
-  {key:'previstoEmpresa', label:'Previsto Fim do Mes - Empresa', tipo:'card'},
+  {key:'saldoAtual', label:'Saldo Atual', tipo:'card'},
+  {key:'saldoPrevisto', label:'Saldo Previsto (fim do mes)', tipo:'card'},
   {key:'despesasCategoria', label:'Despesas por Categoria', tipo:'chart'},
   {key:'receitaDespesa30', label:'Receita x Despesa - 30 dias', tipo:'chart'},
   {key:'receitaDespesa60', label:'Receita x Despesa - 60 dias', tipo:'chart'},
@@ -387,19 +378,20 @@ categoriasRef.get().then(function(snap){
   if(snap.empty){
     var defaults = [
       {nome:'Moradia', visibilidade:'Pessoal', ordem:0},
-      {nome:'Alimentação', visibilidade:'Todos', ordem:1},
-      {nome:'Transporte', visibilidade:'Todos', ordem:2},
+      {nome:'Alimentação', visibilidade:'Pessoal', ordem:1},
+      {nome:'Transporte', visibilidade:'Pessoal', ordem:2},
       {nome:'Salário', visibilidade:'Pessoal', ordem:3},
-      {nome:'Pro-labore', visibilidade:'Todos', ordem:4},
-      {nome:'Saúde', visibilidade:'Pessoal', ordem:5},
-      {nome:'Educação', visibilidade:'Pessoal', ordem:6},
-      {nome:'Lazer', visibilidade:'Pessoal', ordem:7},
-      {nome:'Serviços', visibilidade:'Empresa', ordem:8},
-      {nome:'Impostos', visibilidade:'Empresa', ordem:9},
-      {nome:'Fornecedores', visibilidade:'Empresa', ordem:10},
-      {nome:'Vendas', visibilidade:'Empresa', ordem:11},
-      {nome:'Assinaturas', visibilidade:'Todos', ordem:12},
-      {nome:'Outros', visibilidade:'Todos', ordem:13}
+      {nome:'Saúde', visibilidade:'Pessoal', ordem:4},
+      {nome:'Educação', visibilidade:'Pessoal', ordem:5},
+      {nome:'Lazer', visibilidade:'Pessoal', ordem:6},
+      {nome:'Assinaturas', visibilidade:'Pessoal', ordem:7},
+      {nome:'Outros', visibilidade:'Pessoal', ordem:8},
+      {nome:'Serviços', visibilidade:'Empresa', ordem:9},
+      {nome:'Impostos', visibilidade:'Empresa', ordem:10},
+      {nome:'Fornecedores', visibilidade:'Empresa', ordem:11},
+      {nome:'Vendas', visibilidade:'Empresa', ordem:12},
+      {nome:'Pro-labore', visibilidade:'Empresa', ordem:13},
+      {nome:'Outros', visibilidade:'Empresa', ordem:14}
     ];
     defaults.forEach(function(c){ categoriasRef.add(c); });
   }
@@ -407,7 +399,7 @@ categoriasRef.get().then(function(snap){
 
 contasRef.onSnapshot(function(snap){
   contas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-  renderContas(); renderContasConfigList(); renderDashboard(); popularFiltroConta();
+  renderContas(); renderContasEdicao(); renderDashboard(); popularFiltroConta();
 });
 lancamentosRef.onSnapshot(function(snap){
   lancamentos = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
@@ -516,10 +508,8 @@ function renderDashboard(){
   ordem.forEach(function(item){ if(item.visible) preencherWidget(item.key); });
 }
 function preencherWidget(key){
-  if(key==='saldoPessoal') setText('valor-saldoPessoal', formatMoeda(saldoAtualPerfil('Pessoal')));
-  else if(key==='saldoEmpresa') setText('valor-saldoEmpresa', formatMoeda(saldoAtualPerfil('Empresa')));
-  else if(key==='previstoPessoal') setText('valor-previstoPessoal', formatMoeda(saldoPrevistoPerfil('Pessoal')));
-  else if(key==='previstoEmpresa') setText('valor-previstoEmpresa', formatMoeda(saldoPrevistoPerfil('Empresa')));
+  if(key==='saldoAtual') setText('valor-saldoAtual', formatMoeda(saldoAtualPerfil(perfilAtual)));
+  else if(key==='saldoPrevisto') setText('valor-saldoPrevisto', formatMoeda(saldoPrevistoPerfil(perfilAtual)));
   else if(key==='despesasCategoria') renderPieChart('canvas-despesasCategoria');
   else if(key==='receitaDespesa30') renderReceitaDespesaSimples('canvas-receitaDespesa30',30,'chartObj30');
   else if(key==='receitaDespesa60') renderReceitaDespesaSimples('canvas-receitaDespesa60',60,'chartObj60');
@@ -625,68 +615,65 @@ function renderContas(){
   tbody.innerHTML = '';
   contas.filter(contaEhVisivel).forEach(function(c){
     var tr = document.createElement('tr');
-    tr.innerHTML = '<td>'+c.descricao+'</td><td>'+c.tipo+'</td><td>'+c.perfil+'</td>'+
+    tr.innerHTML = '<td>'+c.descricao+'</td><td>'+c.tipo+'</td>'+
       '<td>'+formatMoeda(saldoAtualConta(c.id))+'</td><td>'+formatMoeda(saldoPrevistoConta(c.id))+'</td>';
     tbody.appendChild(tr);
   });
 }
 function excluirConta(e, id){ e.stopPropagation(); if(confirm('Excluir esta conta?')) contasRef.doc(id).delete(); }
-function editarConta(c){
-  document.getElementById('cfgContaId').value = c.id;
-  document.getElementById('cfgContaNome').value = c.descricao;
-  document.getElementById('cfgContaTipo').value = c.tipo;
-  document.getElementById('cfgContaPerfil').value = c.perfil;
-  document.getElementById('cfgContaSaldo').value = c.saldoInicial;
-  document.getElementById('btnSalvarConta').textContent = 'Salvar Edição';
-  document.getElementById('formContaConfig').style.display = 'flex';
+function editarContaTab(c){
+  document.getElementById('contaTabId').value = c.id;
+  document.getElementById('contaTabNome').value = c.descricao;
+  document.getElementById('contaTabTipo').value = c.tipo;
+  document.getElementById('contaTabSaldo').value = c.saldoInicial;
+  document.getElementById('btnSalvarContaTab').textContent = 'Salvar Edição';
+  document.getElementById('formContaTab').style.display = 'flex';
 }
-function renderContasConfigList(){
-  var container = document.getElementById('listaContasConfig');
+function renderContasEdicao(){
+  var container = document.getElementById('listaContasEdicao');
   if(!container) return;
   container.innerHTML = '';
-  var lista = contas.slice().sort(function(a,b){ return (a.ordem||0)-(b.ordem||0); });
+  var lista = contas.filter(contaEhVisivel).sort(function(a,b){ return (a.ordem||0)-(b.ordem||0); });
   lista.forEach(function(c){
     var row = document.createElement('div');
     row.className = 'config-list-item';
     row.setAttribute('data-id', c.id);
-    if(modoEdicaoContas) row.setAttribute('draggable','true');
-    var handle = modoEdicaoContas ? '<span class="drag-handle">::</span>' : '';
-    var delBtn = modoEdicaoContas ? '<button class="btn-excluir-item" onclick="excluirConta(event,\''+c.id+'\')">Excluir</button>' : '';
-    row.innerHTML = '<span class="item-info">'+handle+c.descricao+' - '+c.tipo+' ('+c.perfil+')</span>'+delBtn;
-    if(modoEdicaoContas){
-      row.querySelector('.item-info').addEventListener('click', function(){ editarConta(c); });
-    }
+    row.setAttribute('draggable','true');
+    row.innerHTML = '<span class="item-info"><span class="drag-handle">::</span>'+c.descricao+' - '+c.tipo+'</span>'+
+      '<button class="btn-excluir-item" onclick="excluirConta(event,\''+c.id+'\')">Excluir</button>';
+    row.querySelector('.item-info').addEventListener('click', function(){ editarContaTab(c); });
     container.appendChild(row);
   });
-  if(modoEdicaoContas) tornarArrastavel(container, function(){
+  tornarArrastavel(container, function(){
     var rows = container.querySelectorAll('[data-id]');
     rows.forEach(function(row, idx){ contasRef.doc(row.getAttribute('data-id')).update({ordem: idx}); });
   });
 }
-document.getElementById('btnEditarContas').addEventListener('click', function(){
-  modoEdicaoContas = !modoEdicaoContas;
-  this.textContent = modoEdicaoContas ? 'Concluir' : 'Editar';
-  renderContasConfigList();
+document.getElementById('btnEditarContasTab').addEventListener('click', function(){
+  modoEdicaoContasTab = !modoEdicaoContasTab;
+  this.textContent = modoEdicaoContasTab ? 'Concluir' : 'Editar';
+  document.getElementById('wrapperTabelaContas').style.display = modoEdicaoContasTab ? 'none' : 'block';
+  document.getElementById('listaContasEdicao').style.display = modoEdicaoContasTab ? 'block' : 'none';
 });
-document.getElementById('btnAddConta').addEventListener('click', function(){
-  document.getElementById('cfgContaId').value = '';
-  document.getElementById('formContaConfig').reset();
-  document.getElementById('btnSalvarConta').textContent = 'Adicionar';
-  document.getElementById('formContaConfig').style.display = 'flex';
+document.getElementById('btnAddContaTab').addEventListener('click', function(){
+  document.getElementById('contaTabId').value = '';
+  document.getElementById('formContaTab').reset();
+  document.getElementById('btnSalvarContaTab').textContent = 'Adicionar';
+  document.getElementById('formContaTab').style.display = 'flex';
 });
-document.getElementById('formContaConfig').addEventListener('submit', function(e){
+document.getElementById('formContaTab').addEventListener('submit', function(e){
   e.preventDefault();
-  var id = document.getElementById('cfgContaId').value;
+  var id = document.getElementById('contaTabId').value;
   var dados = {
-    descricao: document.getElementById('cfgContaNome').value,
-    tipo: document.getElementById('cfgContaTipo').value,
-    perfil: document.getElementById('cfgContaPerfil').value,
-    saldoInicial: parseFloat(document.getElementById('cfgContaSaldo').value)
+    descricao: document.getElementById('contaTabNome').value,
+    tipo: document.getElementById('contaTabTipo').value,
+    perfil: perfilAtual,
+    saldoInicial: parseFloat(document.getElementById('contaTabSaldo').value)
   };
   if(id){ contasRef.doc(id).update(dados); }
   else { dados.ordem = contas.length; contasRef.add(dados); }
-  document.getElementById('formContaConfig').style.display = 'none';
-  document.getElementById('formContaConfig').reset();
+  document.getElementById('formContaTab').style.display = 'none';
+  document.getElementById('formContaTab').reset();
 });
 
 function excluirCategoria(e, id){ e.stopPropagation(); if(confirm('Excluir esta categoria?')) categoriasRef.doc(id).delete(); }
@@ -782,7 +769,7 @@ function popularContaSelectFiltrado(sel){
 }
 function popularCategoriaSelectFiltrado(sel){
   sel.innerHTML = '';
-  categorias.filter(function(c){ return c.visibilidade === perfilAtual || c.visibilidade === 'Todos'; }).forEach(function(c){
+  categorias.filter(function(c){ return c.visibilidade === perfilAtual; }).forEach(function(c){
     var opt = document.createElement('option'); opt.value = c.nome; opt.textContent = c.nome; sel.appendChild(opt);
   });
 }
@@ -822,14 +809,11 @@ function togglePago(id){
   lancamentosRef.doc(id).update({status: l.status === 'Pago' ? 'Programado' : 'Pago'});
 }
 function excluirTransferencia(id){ if(confirm('Excluir esta transferencia?')) transferenciasRef.doc(id).delete(); }
-function excluirLancamentoTrans(id){ if(confirm('Excluir esta transacao?')) lancamentosRef.doc(id).delete(); }
 
 function renderTransacoes(){
   var periodoEl = document.getElementById('filtroPeriodo');
-  var tipoEl = document.getElementById('filtroTipo');
-  var contaEl = document.getElementById('filtroConta');
   if(!periodoEl) return;
-  var periodo = periodoEl.value, tipo = tipoEl.value, contaFiltro = contaEl.value;
+  var periodo = periodoEl.value, tipo = document.getElementById('filtroTipo').value, contaFiltro = document.getElementById('filtroConta').value;
 
   var linhas = [];
   lancamentos.filter(function(l){ return l.perfil === perfilAtual; }).forEach(function(l){
@@ -1062,7 +1046,7 @@ document.querySelectorAll('.toggle-btn').forEach(function(btn){
     document.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
     perfilAtual = btn.getAttribute('data-perfil');
-    renderContas(); renderTransacoes(); renderDashboard(); popularFiltroConta();
+    renderContas(); renderContasEdicao(); renderTransacoes(); renderDashboard(); popularFiltroConta();
   });
 });
 </script>
