@@ -53,10 +53,10 @@ h2{color:#1976D2;}
 
 <div id="lockScreen" class="lock-screen">
   <div class="lock-box">
-    <h2>🔒 Digite o PIN</h2>
-    <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autofocus>
+    <h2>Digite o PIN</h2>
+    <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="****" autofocus>
     <br>
-    <button onclick="verificarPin()">Entrar</button>
+    <button id="btnEntrar">Entrar</button>
     <p id="pinErro">PIN incorreto, tente novamente.</p>
   </div>
 </div>
@@ -64,14 +64,14 @@ h2{color:#1976D2;}
 <div id="appContent" style="display:none;">
 
 <header>
-  <h1>💰 Controle Financeiro</h1>
+  <h1>Controle Financeiro</h1>
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="perfil-filter">
        <button data-perfil="Todos" class="active">Todos</button>
        <button data-perfil="Pessoal">Pessoal</button>
        <button data-perfil="Empresa">Empresa</button>
     </div>
-    <button class="btn-sair" onclick="logout()">Sair</button>
+    <button class="btn-sair" id="btnSair">Sair</button>
   </div>
 </header>
 
@@ -104,7 +104,7 @@ h2{color:#1976D2;}
       <div class="chart-box"><h3>Receita x Despesa (últimos 6 meses)</h3><canvas id="barChart"></canvas></div>
     </div>
     <div id="fixasPendentes">
-      <h3>📌 Contas Fixas Pendentes este mês</h3>
+      <h3>Contas Fixas Pendentes este mês</h3>
       <ul id="listaPendentes"></ul>
     </div>
   </section>
@@ -132,7 +132,7 @@ h2{color:#1976D2;}
 
   <section id="fixas" class="tab-content">
     <h2>Contas Fixas Recorrentes</h2>
-    <button onclick="gerarTodasFixasDoMes()">🔄 Gerar contas fixas deste mês</button><br><br>
+    <button id="btnGerarFixas">Gerar contas fixas deste mês</button><br><br>
     <form id="formFixa">
       <input type="text" id="fixaDescricao" placeholder="Descrição" required>
       <select id="fixaPerfil"><option>Pessoal</option><option>Empresa</option></select>
@@ -195,32 +195,35 @@ h2{color:#1976D2;}
 </div>
 
 <script>
-const PIN_CORRETO = "1234";
+var PIN_CORRETO = "1234";
 
-if(localStorage.getItem('autenticado')==='true'){
-  document.getElementById('lockScreen').style.display='none';
-  document.getElementById('appContent').style.display='block';
-}
 function verificarPin(){
-  const val = document.getElementById('pinInput').value;
-  if(val===PIN_CORRETO){
+  var val = document.getElementById('pinInput').value;
+  if(val === PIN_CORRETO){
     localStorage.setItem('autenticado','true');
-    document.getElementById('lockScreen').style.display='none';
-    document.getElementById('appContent').style.display='block';
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
   } else {
-    document.getElementById('pinErro').style.display='block';
-    document.getElementById('pinInput').value='';
+    document.getElementById('pinErro').style.display = 'block';
+    document.getElementById('pinInput').value = '';
   }
 }
-document.getElementById('pinInput').addEventListener('keyup', e=>{
-  if(e.key==='Enter') verificarPin();
-});
-function logout(){
-  localStorage.removeItem('autenticado');
-  location.reload();
+
+if(localStorage.getItem('autenticado') === 'true'){
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
 }
 
-const firebaseConfig = {
+document.getElementById('btnEntrar').addEventListener('click', verificarPin);
+document.getElementById('pinInput').addEventListener('keyup', function(e){
+  if(e.key === 'Enter') verificarPin();
+});
+document.getElementById('btnSair').addEventListener('click', function(){
+  localStorage.removeItem('autenticado');
+  location.reload();
+});
+
+var firebaseConfig = {
   apiKey: "AIzaSyDMZAt_Ni9LvgJkLooq2geBOZAwwWCPa18",
   authDomain: "easy-money-40195.firebaseapp.com",
   projectId: "easy-money-40195",
@@ -229,59 +232,70 @@ const firebaseConfig = {
   appId: "1:976389981631:web:6cc799e1a0f838777bcd0a"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+var db = firebase.firestore();
 
-const contasRef = db.collection('contas');
-const lancamentosRef = db.collection('lancamentos');
-const contasFixasRef = db.collection('contasFixas');
-const budgetsRef = db.collection('budgets');
+var contasRef = db.collection('contas');
+var lancamentosRef = db.collection('lancamentos');
+var contasFixasRef = db.collection('contasFixas');
+var budgetsRef = db.collection('budgets');
 
-let contas = [], lancamentos = [], contasFixas = [], budgets = [];
-let perfilFiltro = 'Todos';
-let pieChart, barChart;
+var contas = [];
+var lancamentos = [];
+var contasFixas = [];
+var budgets = [];
+var perfilFiltro = 'Todos';
+var pieChart, barChart;
 
-function formatMoeda(v){ return (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function formatMoeda(v){
+  return (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
 
-contasRef.onSnapshot(snap=>{
-  contas = snap.docs.map(d=>({id:d.id,...d.data()}));
-  populateContaSelects(); renderContas(); renderDashboard();
+contasRef.onSnapshot(function(snap){
+  contas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  populateContaSelects();
+  renderContas();
+  renderDashboard();
 });
-lancamentosRef.onSnapshot(snap=>{
-  lancamentos = snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderLancamentos(); renderDashboard(); renderBudget();
+lancamentosRef.onSnapshot(function(snap){
+  lancamentos = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  renderLancamentos();
+  renderDashboard();
+  renderBudget();
 });
-contasFixasRef.onSnapshot(snap=>{
-  contasFixas = snap.docs.map(d=>({id:d.id,...d.data()}));
+contasFixasRef.onSnapshot(function(snap){
+  contasFixas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderContasFixas();
 });
-budgetsRef.onSnapshot(snap=>{
-  budgets = snap.docs.map(d=>({id:d.id,...d.data()}));
+budgetsRef.onSnapshot(function(snap){
+  budgets = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderBudget();
 });
 
 function saldoAtualConta(contaId){
-  const conta = contas.find(c=>c.id===contaId);
+  var conta = contas.find(function(c){ return c.id === contaId; });
   if(!conta) return 0;
-  let saldo = conta.saldoInicial;
-  lancamentos.filter(l=>l.contaId===contaId && l.status==='Pago')
-    .forEach(l=> saldo += (l.tipo==='Receita'? l.valor : -l.valor));
+  var saldo = conta.saldoInicial;
+  lancamentos.filter(function(l){ return l.contaId === contaId && l.status === 'Pago'; })
+    .forEach(function(l){ saldo += (l.tipo === 'Receita' ? l.valor : -l.valor); });
   return saldo;
 }
 function saldoPrevistoConta(contaId){
-  let saldo = saldoAtualConta(contaId);
-  const now = new Date();
-  lancamentos.filter(l=>{
-    if(l.contaId!==contaId || l.status!=='Previsto') return false;
-    const d = new Date(l.data+'T00:00:00');
-    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
-  }).forEach(l=> saldo += (l.tipo==='Receita'? l.valor : -l.valor));
+  var saldo = saldoAtualConta(contaId);
+  var now = new Date();
+  lancamentos.filter(function(l){
+    if(l.contaId !== contaId || l.status !== 'Previsto') return false;
+    var d = new Date(l.data+'T00:00:00');
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).forEach(function(l){ saldo += (l.tipo === 'Receita' ? l.valor : -l.valor); });
   return saldo;
 }
 function saldoAtualPerfil(perfil){
-  return contas.filter(c=>c.perfil===perfil).reduce((s,c)=>s+saldoAtualConta(c.id),0);
+  return contas.filter(function(c){ return c.perfil === perfil; })
+    .reduce(function(s,c){ return s + saldoAtualConta(c.id); }, 0);
 }
 function saldoPrevistoPerfil(perfil){
-  return contas.filter(c=>c.perfil===perfil).reduce((s,c)=>s+saldoPrevistoConta(c.id),0);
+  return contas.filter(function(c){ return c.perfil === perfil; })
+    .reduce(function(s,c){ return s + saldoPrevistoConta(c.id); }, 0);
 }
 
 function renderDashboard(){
@@ -289,190 +303,263 @@ function renderDashboard(){
   document.getElementById('saldoAtualEmpresa').textContent = formatMoeda(saldoAtualPerfil('Empresa'));
   document.getElementById('previstoPessoal').textContent = formatMoeda(saldoPrevistoPerfil('Pessoal'));
   document.getElementById('previstoEmpresa').textContent = formatMoeda(saldoPrevistoPerfil('Empresa'));
-  renderPieChart(); renderBarChart(); renderPendentes();
+  renderPieChart();
+  renderBarChart();
+  renderPendentes();
 }
 function gerarCores(n){
-  const p=['#4CAF50','#F44336','#2196F3','#FFC107','#9C27B0','#00BCD4','#FF9800','#795548','#607D8B','#E91E63'];
-  const c=[]; for(let i=0;i<n;i++) c.push(p[i%p.length]); return c;
+  var p = ['#4CAF50','#F44336','#2196F3','#FFC107','#9C27B0','#00BCD4','#FF9800','#795548','#607D8B','#E91E63'];
+  var c = [];
+  for(var i=0;i<n;i++) c.push(p[i % p.length]);
+  return c;
 }
 function renderPieChart(){
-  const now = new Date();
-  const dados = {};
-  lancamentos.filter(l=>{
-    const d = new Date(l.data+'T00:00:00');
-    const okPerfil = perfilFiltro==='Todos' || l.perfil===perfilFiltro;
-    return l.tipo==='Despesa' && d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear() && okPerfil;
-  }).forEach(l=> dados[l.categoria] = (dados[l.categoria]||0) + l.valor);
-  const labels = Object.keys(dados), valores = Object.values(dados);
+  var now = new Date();
+  var dados = {};
+  lancamentos.filter(function(l){
+    var d = new Date(l.data+'T00:00:00');
+    var okPerfil = (perfilFiltro === 'Todos' || l.perfil === perfilFiltro);
+    return l.tipo === 'Despesa' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && okPerfil;
+  }).forEach(function(l){ dados[l.categoria] = (dados[l.categoria] || 0) + l.valor; });
+  var labels = Object.keys(dados);
+  var valores = Object.values(dados);
   if(pieChart) pieChart.destroy();
-  pieChart = new Chart(document.getElementById('pieChart'),{
-    type:'pie', data:{labels, datasets:[{data:valores, backgroundColor:gerarCores(labels.length)}]}
+  pieChart = new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: { labels: labels, datasets: [{ data: valores, backgroundColor: gerarCores(labels.length) }] }
   });
 }
 function renderBarChart(){
-  const meses=[], receitas=[], despesas=[];
-  const now = new Date();
-  for(let i=5;i>=0;i--){
-    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-    meses.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));
-    let rec=0, desp=0;
-    lancamentos.forEach(l=>{
-      const ld = new Date(l.data+'T00:00:00');
-      const okPerfil = perfilFiltro==='Todos' || l.perfil===perfilFiltro;
-      if(ld.getMonth()===d.getMonth() && ld.getFullYear()===d.getFullYear() && okPerfil){
-        if(l.tipo==='Receita') rec+=l.valor; else desp+=l.valor;
+  var meses = [], receitas = [], despesas = [];
+  var now = new Date();
+  for(var i=5;i>=0;i--){
+    var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    meses.push(d.toLocaleDateString('pt-BR', {month:'short', year:'2-digit'}));
+    var rec = 0, desp = 0;
+    lancamentos.forEach(function(l){
+      var ld = new Date(l.data+'T00:00:00');
+      var okPerfil = (perfilFiltro === 'Todos' || l.perfil === perfilFiltro);
+      if(ld.getMonth() === d.getMonth() && ld.getFullYear() === d.getFullYear() && okPerfil){
+        if(l.tipo === 'Receita') rec += l.valor; else desp += l.valor;
       }
     });
-    receitas.push(rec); despesas.push(desp);
+    receitas.push(rec);
+    despesas.push(desp);
   }
   if(barChart) barChart.destroy();
-  barChart = new Chart(document.getElementById('barChart'),{
-    type:'bar',
-    data:{labels:meses, datasets:[
-      {label:'Receita', data:receitas, backgroundColor:'#4CAF50'},
-      {label:'Despesa', data:despesas, backgroundColor:'#F44336'}
-    ]}
+  barChart = new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: meses,
+      datasets: [
+        { label: 'Receita', data: receitas, backgroundColor: '#4CAF50' },
+        { label: 'Despesa', data: despesas, backgroundColor: '#F44336' }
+      ]
+    }
   });
 }
 function renderPendentes(){
-  const now = new Date();
-  const lista = lancamentos.filter(l=>{
-    const d = new Date(l.data+'T00:00:00');
-    const okPerfil = perfilFiltro==='Todos' || l.perfil===perfilFiltro;
-    return l.status==='Previsto' && d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear() && okPerfil;
+  var now = new Date();
+  var lista = lancamentos.filter(function(l){
+    var d = new Date(l.data+'T00:00:00');
+    var okPerfil = (perfilFiltro === 'Todos' || l.perfil === perfilFiltro);
+    return l.status === 'Previsto' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && okPerfil;
   });
-  const ul = document.getElementById('listaPendentes');
-  ul.innerHTML = lista.length ? '' : '<li>Nenhuma pendência 🎉</li>';
-  lista.forEach(l=>{
-    const li = document.createElement('li');
-    li.textContent = `${l.data} - ${l.descricao} (${formatMoeda(l.valor)}) [${l.perfil}]`;
+  var ul = document.getElementById('listaPendentes');
+  ul.innerHTML = lista.length ? '' : '<li>Nenhuma pendencia</li>';
+  lista.forEach(function(l){
+    var li = document.createElement('li');
+    li.textContent = l.data + ' - ' + l.descricao + ' (' + formatMoeda(l.valor) + ') [' + l.perfil + ']';
     ul.appendChild(li);
   });
 }
 
-document.getElementById('formConta').addEventListener('submit', e=>{
+document.getElementById('formConta').addEventListener('submit', function(e){
   e.preventDefault();
   contasRef.add({
-    nome: contaNome.value, tipo: contaTipo.value, perfil: contaPerfil.value,
-    saldoInicial: parseFloat(contaSaldoInicial.value), dataSaldoInicial: contaDataSaldo.value
+    nome: document.getElementById('contaNome').value,
+    tipo: document.getElementById('contaTipo').value,
+    perfil: document.getElementById('contaPerfil').value,
+    saldoInicial: parseFloat(document.getElementById('contaSaldoInicial').value),
+    dataSaldoInicial: document.getElementById('contaDataSaldo').value
   });
   e.target.reset();
 });
 function renderContas(){
-  const tbody = document.querySelector('#tabelaContas tbody');
-  tbody.innerHTML='';
-  contas.filter(c=> perfilFiltro==='Todos' || c.perfil===perfilFiltro).forEach(c=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${c.nome}</td><td>${c.tipo}</td><td>${c.perfil}</td>
-      <td>${formatMoeda(saldoAtualConta(c.id))}</td><td>${formatMoeda(saldoPrevistoConta(c.id))}</td>
-      <td><button onclick="excluirConta('${c.id}')">🗑️</button></td>`;
+  var tbody = document.querySelector('#tabelaContas tbody');
+  tbody.innerHTML = '';
+  contas.filter(function(c){ return perfilFiltro === 'Todos' || c.perfil === perfilFiltro; }).forEach(function(c){
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+c.nome+'</td><td>'+c.tipo+'</td><td>'+c.perfil+'</td>'+
+      '<td>'+formatMoeda(saldoAtualConta(c.id))+'</td><td>'+formatMoeda(saldoPrevistoConta(c.id))+'</td>'+
+      '<td><button onclick="excluirConta(\''+c.id+'\')">Excluir</button></td>';
     tbody.appendChild(tr);
   });
 }
 function excluirConta(id){ if(confirm('Excluir esta conta?')) contasRef.doc(id).delete(); }
 function populateContaSelects(){
-  [document.getElementById('lancContaId'), document.getElementById('fixaContaId')].forEach(sel=>{
+  [document.getElementById('lancContaId'), document.getElementById('fixaContaId')].forEach(function(sel){
     if(!sel) return;
-    sel.innerHTML='';
-    contas.forEach(c=>{
-      const opt = document.createElement('option');
-      opt.value=c.id; opt.textContent = `${c.nome} (${c.perfil})`;
+    sel.innerHTML = '';
+    contas.forEach(function(c){
+      var opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.nome + ' (' + c.perfil + ')';
       sel.appendChild(opt);
     });
   });
 }
 
-document.getElementById('formFixa').addEventListener('submit', e=>{
+document.getElementById('formFixa').addEventListener('submit', function(e){
   e.preventDefault();
   contasFixasRef.add({
-    descricao: fixaDescricao.value, perfil: fixaPerfil.value, contaId: fixaContaId.value,
-    categoria: fixaCategoria.value, tipo: fixaTipo.value, valor: parseFloat(fixaValor.value),
-    diaVencimento: parseInt(fixaDia.value), ativo: fixaAtivo.checked
+    descricao: document.getElementById('fixaDescricao').value,
+    perfil: document.getElementById('fixaPerfil').value,
+    contaId: document.getElementById('fixaContaId').value,
+    categoria: document.getElementById('fixaCategoria').value,
+    tipo: document.getElementById('fixaTipo').value,
+    valor: parseFloat(document.getElementById('fixaValor').value),
+    diaVencimento: parseInt(document.getElementById('fixaDia').value),
+    ativo: document.getElementById('fixaAtivo').checked
   });
-  e.target.reset(); fixaAtivo.checked = true;
+  e.target.reset();
+  document.getElementById('fixaAtivo').checked = true;
 });
 function renderContasFixas(){
-  const tbody = document.querySelector('#tabelaFixas tbody');
-  tbody.innerHTML='';
-  contasFixas.filter(f=> perfilFiltro==='Todos' || f.perfil===perfilFiltro).forEach(f=>{
-    const conta = contas.find(c=>c.id===f.contaId);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${f.descricao}</td><td>${f.perfil}</td><td>${conta?conta.nome:'-'}</td>
-      <td>${f.categoria}</td><td>${f.tipo}</td><td>${formatMoeda(f.valor)}</td>
-      <td>${f.diaVencimento}</td><td>${f.ativo?'Sim':'Não'}</td>
-      <td><button onclick="gerarLancamentoFixa('${f.id}')">Gerar</button></td>
-      <td><button onclick="excluirFixa('${f.id}')">🗑️</button></td>`;
+  var tbody = document.querySelector('#tabelaFixas tbody');
+  tbody.innerHTML = '';
+  contasFixas.filter(function(f){ return perfilFiltro === 'Todos' || f.perfil === perfilFiltro; }).forEach(function(f){
+    var conta = contas.find(function(c){ return c.id === f.contaId; });
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+f.descricao+'</td><td>'+f.perfil+'</td><td>'+(conta?conta.nome:'-')+'</td>'+
+      '<td>'+f.categoria+'</td><td>'+f.tipo+'</td><td>'+formatMoeda(f.valor)+'</td>'+
+      '<td>'+f.diaVencimento+'</td><td>'+(f.ativo?'Sim':'Nao')+'</td>'+
+      '<td><button onclick="gerarLancamentoFixa(\''+f.id+'\')">Gerar</button></td>'+
+      '<td><button onclick="excluirFixa(\''+f.id+'\')">Excluir</button></td>';
     tbody.appendChild(tr);
   });
 }
 function excluirFixa(id){ if(confirm('Excluir esta conta fixa?')) contasFixasRef.doc(id).delete(); }
 function gerarLancamentoFixa(fixaId){
-  const f = contasFixas.find(x=>x.id===fixaId);
+  var f = contasFixas.find(function(x){ return x.id === fixaId; });
   if(!f) return;
-  const now = new Date();
-  const data = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(f.diaVencimento).padStart(2,'0')}`;
+  var now = new Date();
+  var mesStr = String(now.getMonth()+1).padStart(2,'0');
+  var diaStr = String(f.diaVencimento).padStart(2,'0');
+  var data = now.getFullYear() + '-' + mesStr + '-' + diaStr;
   lancamentosRef.add({
-    data, perfil:f.perfil, contaId:f.contaId, categoria:f.categoria,
-    descricao:f.descricao, tipo:f.tipo, valor:f.valor, status:'Previsto', origem:'Fixo', fixaId:f.id
+    data: data, perfil: f.perfil, contaId: f.contaId, categoria: f.categoria,
+    descricao: f.descricao, tipo: f.tipo, valor: f.valor, status: 'Previsto',
+    origem: 'Fixo', fixaId: f.id
   });
 }
 function gerarTodasFixasDoMes(){
-  const now = new Date();
-  contasFixas.filter(f=>f.ativo).forEach(f=>{
-    const jaExiste = lancamentos.some(l=>{
-      if(l.fixaId!==f.id) return false;
-      const d = new Date(l.data+'T00:00:00');
-      return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  var now = new Date();
+  contasFixas.filter(function(f){ return f.ativo; }).forEach(function(f){
+    var jaExiste = lancamentos.some(function(l){
+      if(l.fixaId !== f.id) return false;
+      var d = new Date(l.data+'T00:00:00');
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
     if(!jaExiste) gerarLancamentoFixa(f.id);
   });
-  alert('Contas fixas do mês geradas com sucesso!');
+  alert('Contas fixas do mes geradas com sucesso!');
 }
+document.getElementById('btnGerarFixas').addEventListener('click', gerarTodasFixasDoMes);
 
-document.getElementById('formLancamento').addEventListener('submit', e=>{
+document.getElementById('formLancamento').addEventListener('submit', function(e){
   e.preventDefault();
   lancamentosRef.add({
-    data: lancData.value, perfil: lancPerfil.value, contaId: lancContaId.value,
-    categoria: lancCategoria.value, descricao: lancDescricao.value, tipo: lancTipo.value,
-    valor: parseFloat(lancValor.value), status: lancStatus.value
+    data: document.getElementById('lancData').value,
+    perfil: document.getElementById('lancPerfil').value,
+    contaId: document.getElementById('lancContaId').value,
+    categoria: document.getElementById('lancCategoria').value,
+    descricao: document.getElementById('lancDescricao').value,
+    tipo: document.getElementById('lancTipo').value,
+    valor: parseFloat(document.getElementById('lancValor').value),
+    status: document.getElementById('lancStatus').value
   });
   e.target.reset();
 });
 function renderLancamentos(){
-  const tbody = document.querySelector('#tabelaLancamentos tbody');
-  tbody.innerHTML='';
-  lancamentos.filter(l=> perfilFiltro==='Todos' || l.perfil===perfilFiltro)
-    .sort((a,b)=> b.data.localeCompare(a.data)).forEach(l=>{
-      const conta = contas.find(c=>c.id===l.contaId);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${l.data}</td><td>${l.perfil}</td><td>${conta?conta.nome:'-'}</td>
-        <td>${l.categoria}</td><td>${l.descricao}</td>
-        <td class="${l.tipo==='Receita'?'receita':'despesa'}">${l.tipo}</td>
-        <td>${formatMoeda(l.valor)}</td>
-        <td><button onclick="togglePago('${l.id}')">${l.status}</button></td>
-        <td><button onclick="excluirLancamento('${l.id}')">🗑️</button></td>`;
+  var tbody = document.querySelector('#tabelaLancamentos tbody');
+  tbody.innerHTML = '';
+  lancamentos.filter(function(l){ return perfilFiltro === 'Todos' || l.perfil === perfilFiltro; })
+    .sort(function(a,b){ return b.data.localeCompare(a.data); })
+    .forEach(function(l){
+      var conta = contas.find(function(c){ return c.id === l.contaId; });
+      var tr = document.createElement('tr');
+      var classeTipo = l.tipo === 'Receita' ? 'receita' : 'despesa';
+      tr.innerHTML = '<td>'+l.data+'</td><td>'+l.perfil+'</td><td>'+(conta?conta.nome:'-')+'</td>'+
+        '<td>'+l.categoria+'</td><td>'+l.descricao+'</td>'+
+        '<td class="'+classeTipo+'">'+l.tipo+'</td>'+
+        '<td>'+formatMoeda(l.valor)+'</td>'+
+        '<td><button onclick="togglePago(\''+l.id+'\')">'+l.status+'</button></td>'+
+        '<td><button onclick="excluirLancamento(\''+l.id+'\')">Excluir</button></td>';
       tbody.appendChild(tr);
   });
 }
-function excluirLancamento(id){ if(confirm('Excluir este lançamento?')) lancamentosRef.doc(id).delete(); }
+function excluirLancamento(id){ if(confirm('Excluir este lancamento?')) lancamentosRef.doc(id).delete(); }
 function togglePago(id){
-  const l = lancamentos.find(x=>x.id===id);
-  lancamentosRef.doc(id).update({status: l.status==='Pago'?'Previsto':'Pago'});
+  var l = lancamentos.find(function(x){ return x.id === id; });
+  lancamentosRef.doc(id).update({ status: l.status === 'Pago' ? 'Previsto' : 'Pago' });
 }
 
-document.getElementById('formBudget').addEventListener('submit', e=>{
+document.getElementById('formBudget').addEventListener('submit', function(e){
   e.preventDefault();
   budgetsRef.add({
-    mes: budgetMes.value, perfil: budgetPerfil.value,
-    categoria: budgetCategoria.value, valorOrcado: parseFloat(budgetValor.value)
+    mes: document.getElementById('budgetMes').value,
+    perfil: document.getElementById('budgetPerfil').value,
+    categoria: document.getElementById('budgetCategoria').value,
+    valorOrcado: parseFloat(document.getElementById('budgetValor').value)
   });
   e.target.reset();
 });
 function renderBudget(){
-  const tbody = document.querySelector('#tabelaBudget tbody');
-  tbody.innerHTML='';
-  budgets.forEach(b=>{
-    const [ano,mes] = b.mes.split('-');
-    const realizado = lancamentos.filter(l=>{
-      const d = new Date(l.data+'T00:00:00');
-      return l.categoria===b.categoria && l.perfil===b
+  var tbody = document.querySelector('#tabelaBudget tbody');
+  tbody.innerHTML = '';
+  budgets.forEach(function(b){
+    var partes = b.mes.split('-');
+    var ano = partes[0], mes = partes[1];
+    var realizado = lancamentos.filter(function(l){
+      var d = new Date(l.data+'T00:00:00');
+      return l.categoria === b.categoria && l.perfil === b.perfil && l.tipo === 'Despesa'
+        && (d.getMonth()+1) === parseInt(mes) && d.getFullYear() === parseInt(ano);
+    }).reduce(function(s,l){ return s + l.valor; }, 0);
+    var pct = b.valorOrcado > 0 ? (realizado / b.valorOrcado * 100) : 0;
+    var classePct = pct > 100 ? 'over' : (pct > 70 ? 'warn' : 'ok');
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+b.mes+'</td><td>'+b.perfil+'</td><td>'+b.categoria+'</td>'+
+      '<td>'+formatMoeda(b.valorOrcado)+'</td><td>'+formatMoeda(realizado)+'</td>'+
+      '<td class="'+classePct+'">'+pct.toFixed(0)+'%</td>'+
+      '<td><button onclick="excluirBudget(\''+b.id+'\')">Excluir</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+function excluirBudget(id){ if(confirm('Excluir este orcamento?')) budgetsRef.doc(id).delete(); }
+
+var tabButtons = document.querySelectorAll('.tab-btn');
+for(var t=0; t<tabButtons.length; t++){
+  tabButtons[t].addEventListener('click', function(){
+    var alvo = this.getAttribute('data-tab');
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
+    this.classList.add('active');
+    document.getElementById(alvo).classList.add('active');
+  });
+}
+var perfilButtons = document.querySelectorAll('.perfil-filter button');
+for(var p=0; p<perfilButtons.length; p++){
+  perfilButtons[p].addEventListener('click', function(){
+    document.querySelectorAll('.perfil-filter button').forEach(function(b){ b.classList.remove('active'); });
+    this.classList.add('active');
+    perfilFiltro = this.getAttribute('data-perfil');
+    renderContas();
+    renderLancamentos();
+    renderContasFixas();
+    renderDashboard();
+  });
+}
+</script>
+</body>
+</html>
