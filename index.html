@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Financeiro</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+body{margin:0;background:#f4f6f8;color:#222;}
+header{background:#1976D2;color:white;padding:16px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;}
+header h1{margin:0;font-size:1.3em;}
+.perfil-filter button{background:rgba(255,255,255,0.2);border:none;color:white;padding:6px 12px;margin-left:5px;border-radius:4px;cursor:pointer;}
+.perfil-filter button.active{background:white;color:#1976D2;font-weight:bold;}
+nav#tabs{display:flex;background:#0d47a1;overflow-x:auto;}
+.tab-btn{flex:1;padding:12px;background:none;border:none;color:white;cursor:pointer;white-space:nowrap;}
+.tab-btn.active{background:#1976D2;font-weight:bold;}
+main{padding:16px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.card{background:white;border-radius:8px;padding:16px;flex:1;min-width:200px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.card h3{margin:0 0 8px;font-size:0.9em;color:#666;}
+.card p{margin:0;font-size:1.4em;font-weight:bold;color:#1976D2;}
+.charts{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;}
+.chart-box{background:white;border-radius:8px;padding:16px;flex:1;min-width:280px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+form{background:white;padding:16px;border-radius:8px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+form input, form select{padding:8px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:120px;}
+form button{padding:8px 16px;background:#1976D2;color:white;border:none;border-radius:4px;cursor:pointer;}
+.table-wrapper{overflow-x:auto;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+table{width:100%;border-collapse:collapse;min-width:600px;}
+th, td{padding:10px;text-align:left;border-bottom:1px solid #eee;font-size:0.9em;}
+th{background:#f0f0f0;}
+.receita{color:#2e7d32;font-weight:bold;}
+.despesa{color:#c62828;font-weight:bold;}
+.ok{color:#2e7d32;}
+.warn{color:#f9a825;}
+.over{color:#c62828;font-weight:bold;}
+#fixasPendentes{background:white;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:20px;}
+h2{color:#1976D2;}
+.btn-sair{background:rgba(0,0,0,0.2);border:none;color:white;padding:6px 12px;border-radius:4px;cursor:pointer;}
+.lock-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#1976D2;display:flex;align-items:center;justify-content:center;z-index:1000;}
+.lock-box{background:white;padding:30px;border-radius:12px;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
+.lock-box h2{margin-top:0;}
+.lock-box input{font-size:2em;text-align:center;letter-spacing:15px;padding:10px;width:200px;border:2px solid #1976D2;border-radius:8px;margin-bottom:15px;}
+.lock-box button{padding:10px 24px;background:#1976D2;color:white;border:none;border-radius:6px;font-size:1em;cursor:pointer;}
+#pinErro{color:#c62828;font-weight:bold;display:none;}
+</style>
+</head>
+<body>
+
+<div id="lockScreen" class="lock-screen">
+  <div class="lock-box">
+    <h2>🔒 Digite o PIN</h2>
+    <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autofocus>
+    <br>
+    <button onclick="verificarPin()">Entrar</button>
+    <p id="pinErro">PIN incorreto, tente novamente.</p>
+  </div>
+</div>
+
+<div id="appContent" style="display:none;">
+
+<header>
+  <h1>💰 Controle Financeiro</h1>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="perfil-filter">
+       <button data-perfil="Todos" class="active">Todos</button>
+       <button data-perfil="Pessoal">Pessoal</button>
+       <button data-perfil="Empresa">Empresa</button>
+    </div>
+    <button class="btn-sair" onclick="logout()">Sair</button>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button data-tab="dashboard" class="tab-btn active">Dashboard</button>
+  <button data-tab="contas" class="tab-btn">Contas</button>
+  <button data-tab="fixas" class="tab-btn">Contas Fixas</button>
+  <button data-tab="lancamentos" class="tab-btn">Lançamentos</button>
+  <button data-tab="budget" class="tab-btn">Budget</button>
+</nav>
+
+<datalist id="categoriasList">
+  <option value="Moradia"><option value="Alimentação"><option value="Transporte">
+  <option value="Salário"><option value="Saúde"><option value="Educação">
+  <option value="Lazer"><option value="Serviços"><option value="Impostos">
+  <option value="Assinaturas"><option value="Investimentos"><option value="Outros">
+</datalist>
+
+<main>
+
+  <section id="dashboard" class="tab-content active">
+    <div class="cards">
+      <div class="card"><h3>Saldo Atual Pessoal</h3><p id="saldoAtualPessoal">R$ 0,00</p></div>
+      <div class="card"><h3>Saldo Atual Empresa</h3><p id="saldoAtualEmpresa">R$ 0,00</p></div>
+      <div class="card"><h3>Previsto Fim do Mês (Pessoal)</h3><p id="previstoPessoal">R$ 0,00</p></div>
+      <div class="card"><h3>Previsto Fim do Mês (Empresa)</h3><p id="previstoEmpresa">R$ 0,00</p></div>
+    </div>
+    <div class="charts">
+      <div class="chart-box"><h3>Despesas por Categoria (mês atual)</h3><canvas id="pieChart"></canvas></div>
+      <div class="chart-box"><h3>Receita x Despesa (últimos 6 meses)</h3><canvas id="barChart"></canvas></div>
+    </div>
+    <div id="fixasPendentes">
+      <h3>📌 Contas Fixas Pendentes este mês</h3>
+      <ul id="listaPendentes"></ul>
+    </div>
+  </section>
+
+  <section id="contas" class="tab-content">
+    <h2>Contas e Cartões</h2>
+    <form id="formConta">
+      <input type="text" id="contaNome" placeholder="Nome da conta" required>
+      <select id="contaTipo">
+        <option>Conta Corrente</option><option>Cartão de Crédito</option>
+        <option>Dinheiro</option><option>Investimento</option>
+      </select>
+      <select id="contaPerfil"><option>Pessoal</option><option>Empresa</option></select>
+      <input type="number" id="contaSaldoInicial" placeholder="Saldo inicial" step="0.01" required>
+      <input type="date" id="contaDataSaldo" required>
+      <button type="submit">Adicionar Conta</button>
+    </form>
+    <div class="table-wrapper">
+    <table id="tabelaContas">
+      <thead><tr><th>Nome</th><th>Tipo</th><th>Perfil</th><th>Saldo Atual</th><th>Previsto</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </section>
+
+  <section id="fixas" class="tab-content">
+    <h2>Contas Fixas Recorrentes</h2>
+    <button onclick="gerarTodasFixasDoMes()">🔄 Gerar contas fixas deste mês</button><br><br>
+    <form id="formFixa">
+      <input type="text" id="fixaDescricao" placeholder="Descrição" required>
+      <select id="fixaPerfil"><option>Pessoal</option><option>Empresa</option></select>
+      <select id="fixaContaId"></select>
+      <input type="text" list="categoriasList" id="fixaCategoria" placeholder="Categoria" required>
+      <select id="fixaTipo"><option>Despesa</option><option>Receita</option></select>
+      <input type="number" id="fixaValor" placeholder="Valor" step="0.01" required>
+      <input type="number" id="fixaDia" placeholder="Dia venc. (1-31)" min="1" max="31" required>
+      <label><input type="checkbox" id="fixaAtivo" checked> Ativo</label>
+      <button type="submit">Adicionar Conta Fixa</button>
+    </form>
+    <div class="table-wrapper">
+    <table id="tabelaFixas">
+      <thead><tr><th>Descrição</th><th>Perfil</th><th>Conta</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th>Dia</th><th>Ativo</th><th></th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </section>
+
+  <section id="lancamentos" class="tab-content">
+    <h2>Lançamentos</h2>
+    <form id="formLancamento">
+      <input type="date" id="lancData" required>
+      <select id="lancPerfil"><option>Pessoal</option><option>Empresa</option></select>
+      <select id="lancContaId"></select>
+      <input type="text" list="categoriasList" id="lancCategoria" placeholder="Categoria" required>
+      <input type="text" id="lancDescricao" placeholder="Descrição" required>
+      <select id="lancTipo"><option>Despesa</option><option>Receita</option></select>
+      <input type="number" id="lancValor" placeholder="Valor" step="0.01" required>
+      <select id="lancStatus"><option>Pago</option><option>Previsto</option></select>
+      <button type="submit">Adicionar Lançamento</button>
+    </form>
+    <div class="table-wrapper">
+    <table id="tabelaLancamentos">
+      <thead><tr><th>Data</th><th>Perfil</th><th>Conta</th><th>Categoria</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </section>
+
+  <section id="budget" class="tab-content">
+    <h2>Budget (Orçamento)</h2>
+    <form id="formBudget">
+      <input type="month" id="budgetMes" required>
+      <select id="budgetPerfil"><option>Pessoal</option><option>Empresa</option></select>
+      <input type="text" list="categoriasList" id="budgetCategoria" placeholder="Categoria" required>
+      <input type="number" id="budgetValor" placeholder="Valor orçado" step="0.01" required>
+      <button type="submit">Adicionar Orçamento</button>
+    </form>
+    <div class="table-wrapper">
+    <table id="tabelaBudget">
+      <thead><tr><th>Mês</th><th>Perfil</th><th>Categoria</th><th>Orçado</th><th>Realizado</th><th>%</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </section>
+
+</main>
+
+</div>
+
+<script>
+const PIN_CORRETO = "1234";
+
+if(localStorage.getItem('autenticado')==='true'){
+  document.getElementById('lockScreen').style.display='none';
+  document.getElementById('appContent').style.display='block';
+}
+function verificarPin(){
+  const val = document.getElementById('pinInput').value;
+  if(val===PIN_CORRETO){
+    localStorage.setItem('autenticado','true');
+    document.getElementById('lockScreen').style.display='none';
+    document.getElementById('appContent').style.display='block';
+  } else {
+    document.getElementById('pinErro').style.display='block';
+    document.getElementById('pinInput').value='';
+  }
+}
+document.getElementById('pinInput').addEventListener('keyup', e=>{
+  if(e.key==='Enter') verificarPin();
+});
+function logout(){
+  localStorage.removeItem('autenticado');
+  location.reload();
+}
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMZAt_Ni9LvgJkLooq2geBOZAwwWCPa18",
+  authDomain: "easy-money-40195.firebaseapp.com",
+  projectId: "easy-money-40195",
+  storageBucket: "easy-money-40195.firebasestorage.app",
+  messagingSenderId: "976389981631",
+  appId: "1:976389981631:web:6cc799e1a0f838777bcd0a"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const contasRef = db.collection('contas');
+const lancamentosRef = db.collection('lancamentos');
+const contasFixasRef = db.collection('contasFixas');
+const budgetsRef = db.collection('budgets');
+
+let contas = [], lancamentos = [], contasFixas = [], budgets = [];
+let perfilFiltro = 'Todos';
+let pieChart, barChart;
+
+function formatMoeda(v){ return (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+contasRef.onSnapshot(snap=>{
+  contas = snap.docs.map(d=>({id:d.id,...d.data()}));
+  populateContaSelects(); renderContas(); renderDashboard();
+});
+lancamentosRef.onSnapshot(snap=>{
+  lancamentos = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderLancamentos(); renderDashboard(); renderBudget();
+});
+contasFixasRef.onSnapshot(snap=>{
+  contasFixas = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderContasFixas();
+});
+budgetsRef.onSnapshot(snap=>{
+  budgets = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderBudget();
+});
+
+function saldoAtualConta(contaId){
+  const conta = contas.find(c=>c.id===contaId);
+  if(!conta) return 0;
+  let saldo = conta.saldoInicial;
+  lancamentos.filter(l=>l.contaId===contaId && l.status==='Pago')
+    .forEach(l=> saldo += (l.tipo==='Receita'? l.valor : -l.valor));
+  return saldo;
+}
+function saldoPrevistoConta(contaId){
+  let saldo = saldoAtualConta(contaId);
+  const now = new Date();
+  lancamentos.filter(l=>{
+    if(l.contaId!==contaId || l.status!=='Previsto') return false;
+    const d = new Date(l.data+'T00:00:00');
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  }).forEach(l=> saldo += (l.tipo==='Receita'? l.valor : -l.valor));
+  return saldo;
+}
+function saldoAtualPerfil(perfil){
+  return contas.filter(c=>c.perfil===perfil).reduce((s,c)=>s+saldoAtualConta(c.id),0);
+}
+function saldoPrevistoPerfil(perfil){
+  return contas.filter(c=>c.perfil===perfil).reduce((s,c)=>s+saldoPrevistoConta(c.id),0);
+}
+
+function renderDashboard(){
+  document.getElementById('saldoAtualPessoal').textContent = formatMoeda(saldoAtualPerfil('Pessoal'));
+  document.getElementById('saldoAtualEmpresa').textContent = formatMoeda(saldoAtualPerfil('Empresa'));
+  document.getElementById('previstoPessoal').textContent = formatMoeda(saldoPrevistoPerfil('Pessoal'));
+  document.getElementById('previstoEmpresa').textContent = formatMoeda(saldoPrevistoPerfil('Empresa'));
+  renderPieChart(); renderBarChart(); renderPendentes();
+}
+function gerarCores(n){
+  const p=['#4CAF50','#F44336','#2196F3','#FFC107','#9C27B0','#00BCD4','#FF9800','#795548','#607D8B','#E91E63'];
+  const c=[]; for(let i=0;i<n;i++) c.push(p[i%p.length]); return c;
+}
+function renderPieChart(){
+  const now = new Date();
+  const dados = {};
+  lancamentos.filter(l=>{
+    const d = new Date(l.data+'T00:00:00');
+    const okPerfil = perfilFiltro==='Todos' || l.perfil===perfilFiltro;
+    return l.tipo==='Despesa' && d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear() && okPerfil;
+  }).forEach(l=> dados[l.categoria] = (dados[l.categoria]||0) + l.valor);
+  const labels = Object.keys(dados), valores = Object.values(dados);
+  if(pieChart) pieChart.destroy();
+  pieChart = new Chart(document.getElementById('pieChart'),{
+    type:'pie', data:{labels, datasets:[{data:valores, backgroundColor:gerarCores(labels.length)}]}
+  });
+}
+function renderBarChart(){
+  const meses=[], receitas=[], despesas=[];
+  const now = new Date();
+  for(let i=5;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    meses.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));
+    let rec=0, desp=0;
+    lancamentos.forEach(l=>{
+      const ld = new Date(l.data+'T00:00:00');
+      const okPerfil = perfilFiltro==='Todos' || l.perfil===perfilFiltro;
+      if(ld.getMonth()===d.getMonth() && ld.getFullYear()===d.getFullYear() && okPerfil){
+        if(l.tipo==='Receita') rec+=l.valor; else desp+=l.valor;
+      }
+    });
+    receitas.push(rec); despesas.push(desp);
+  }
+  if(barChart) barChart.destroy();
+  barChart = new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{labels:meses, datasets:[
+      {label:'Receita', data:receitas, backgroundColor:'#4CAF50'},
+      {label:'Despesa', data:despesas, backgroundColor:'#F44336'}
+    ]}
+  });
+}
+function renderPendentes(){
+  const now = new Date();
+  const lista = lancamentos.filter(l=>{
+    const d = new Date(l.data+'T00:00:00');
+    const okPerfil = perfilFiltro==='Todos' || l.perfil===perfilFiltro;
+    return l.status==='Previsto' && d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear() && okPerfil;
+  });
+  const ul = document.getElementById('listaPendentes');
+  ul.innerHTML = lista.length ? '' : '<li>Nenhuma pendência 🎉</li>';
+  lista.forEach(l=>{
+    const li = document.createElement('li');
+    li.textContent = `${l.data} - ${l.descricao} (${formatMoeda(l.valor)}) [${l.perfil}]`;
+    ul.appendChild(li);
+  });
+}
+
+document.getElementById('formConta').addEventListener('submit', e=>{
+  e.preventDefault();
+  contasRef.add({
+    nome: contaNome.value, tipo: contaTipo.value, perfil: contaPerfil.value,
+    saldoInicial: parseFloat(contaSaldoInicial.value), dataSaldoInicial: contaDataSaldo.value
+  });
+  e.target.reset();
+});
+function renderContas(){
+  const tbody = document.querySelector('#tabelaContas tbody');
+  tbody.innerHTML='';
+  contas.filter(c=> perfilFiltro==='Todos' || c.perfil===perfilFiltro).forEach(c=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${c.nome}</td><td>${c.tipo}</td><td>${c.perfil}</td>
+      <td>${formatMoeda(saldoAtualConta(c.id))}</td><td>${formatMoeda(saldoPrevistoConta(c.id))}</td>
+      <td><button onclick="excluirConta('${c.id}')">🗑️</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function excluirConta(id){ if(confirm('Excluir esta conta?')) contasRef.doc(id).delete(); }
+function populateContaSelects(){
+  [document.getElementById('lancContaId'), document.getElementById('fixaContaId')].forEach(sel=>{
+    if(!sel) return;
+    sel.innerHTML='';
+    contas.forEach(c=>{
+      const opt = document.createElement('option');
+      opt.value=c.id; opt.textContent = `${c.nome} (${c.perfil})`;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+document.getElementById('formFixa').addEventListener('submit', e=>{
+  e.preventDefault();
+  contasFixasRef.add({
+    descricao: fixaDescricao.value, perfil: fixaPerfil.value, contaId: fixaContaId.value,
+    categoria: fixaCategoria.value, tipo: fixaTipo.value, valor: parseFloat(fixaValor.value),
+    diaVencimento: parseInt(fixaDia.value), ativo: fixaAtivo.checked
+  });
+  e.target.reset(); fixaAtivo.checked = true;
+});
+function renderContasFixas(){
+  const tbody = document.querySelector('#tabelaFixas tbody');
+  tbody.innerHTML='';
+  contasFixas.filter(f=> perfilFiltro==='Todos' || f.perfil===perfilFiltro).forEach(f=>{
+    const conta = contas.find(c=>c.id===f.contaId);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${f.descricao}</td><td>${f.perfil}</td><td>${conta?conta.nome:'-'}</td>
+      <td>${f.categoria}</td><td>${f.tipo}</td><td>${formatMoeda(f.valor)}</td>
+      <td>${f.diaVencimento}</td><td>${f.ativo?'Sim':'Não'}</td>
+      <td><button onclick="gerarLancamentoFixa('${f.id}')">Gerar</button></td>
+      <td><button onclick="excluirFixa('${f.id}')">🗑️</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function excluirFixa(id){ if(confirm('Excluir esta conta fixa?')) contasFixasRef.doc(id).delete(); }
+function gerarLancamentoFixa(fixaId){
+  const f = contasFixas.find(x=>x.id===fixaId);
+  if(!f) return;
+  const now = new Date();
+  const data = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(f.diaVencimento).padStart(2,'0')}`;
+  lancamentosRef.add({
+    data, perfil:f.perfil, contaId:f.contaId, categoria:f.categoria,
+    descricao:f.descricao, tipo:f.tipo, valor:f.valor, status:'Previsto', origem:'Fixo', fixaId:f.id
+  });
+}
+function gerarTodasFixasDoMes(){
+  const now = new Date();
+  contasFixas.filter(f=>f.ativo).forEach(f=>{
+    const jaExiste = lancamentos.some(l=>{
+      if(l.fixaId!==f.id) return false;
+      const d = new Date(l.data+'T00:00:00');
+      return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+    });
+    if(!jaExiste) gerarLancamentoFixa(f.id);
+  });
+  alert('Contas fixas do mês geradas com sucesso!');
+}
+
+document.getElementById('formLancamento').addEventListener('submit', e=>{
+  e.preventDefault();
+  lancamentosRef.add({
+    data: lancData.value, perfil: lancPerfil.value, contaId: lancContaId.value,
+    categoria: lancCategoria.value, descricao: lancDescricao.value, tipo: lancTipo.value,
+    valor: parseFloat(lancValor.value), status: lancStatus.value
+  });
+  e.target.reset();
+});
+function renderLancamentos(){
+  const tbody = document.querySelector('#tabelaLancamentos tbody');
+  tbody.innerHTML='';
+  lancamentos.filter(l=> perfilFiltro==='Todos' || l.perfil===perfilFiltro)
+    .sort((a,b)=> b.data.localeCompare(a.data)).forEach(l=>{
+      const conta = contas.find(c=>c.id===l.contaId);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${l.data}</td><td>${l.perfil}</td><td>${conta?conta.nome:'-'}</td>
+        <td>${l.categoria}</td><td>${l.descricao}</td>
+        <td class="${l.tipo==='Receita'?'receita':'despesa'}">${l.tipo}</td>
+        <td>${formatMoeda(l.valor)}</td>
+        <td><button onclick="togglePago('${l.id}')">${l.status}</button></td>
+        <td><button onclick="excluirLancamento('${l.id}')">🗑️</button></td>`;
+      tbody.appendChild(tr);
+  });
+}
+function excluirLancamento(id){ if(confirm('Excluir este lançamento?')) lancamentosRef.doc(id).delete(); }
+function togglePago(id){
+  const l = lancamentos.find(x=>x.id===id);
+  lancamentosRef.doc(id).update({status: l.status==='Pago'?'Previsto':'Pago'});
+}
+
+document.getElementById('formBudget').addEventListener('submit', e=>{
+  e.preventDefault();
+  budgetsRef.add({
+    mes: budgetMes.value, perfil: budgetPerfil.value,
+    categoria: budgetCategoria.value, valorOrcado: parseFloat(budgetValor.value)
+  });
+  e.target.reset();
+});
+function renderBudget(){
+  const tbody = document.querySelector('#tabelaBudget tbody');
+  tbody.innerHTML='';
+  budgets.forEach(b=>{
+    const [ano,mes] = b.mes.split('-');
+    const realizado = lancamentos.filter(l=>{
+      const d = new Date(l.data+'T00:00:00');
+      return l.categoria===b.categoria && l.perfil===b
