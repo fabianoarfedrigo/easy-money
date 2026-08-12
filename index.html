@@ -30,7 +30,6 @@ button{border-radius:10px;border:none;cursor:pointer;font-family:inherit;transit
 button:hover{opacity:0.92;}
 input, select{border-radius:8px;border:1px solid #d1d5db;padding:10px 12px;font-family:inherit;font-size:0.95em;}
 input:focus, select:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(20,184,120,0.15);}
-
 header{position:relative;background:var(--gradiente);color:white;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);flex-wrap:wrap;}
 .brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 18px;}
 .brand-logo{height:64px;display:block;}
@@ -39,15 +38,12 @@ header{position:relative;background:var(--gradiente);color:white;padding:20px 24
 .toggle-btn.active{background:white;color:var(--azul);}
 .header-actions{display:flex;gap:8px;z-index:2;}
 .icon-btn{background:rgba(255,255,255,0.2);color:white;padding:8px 16px;border-radius:10px;}
-
 nav#tabs{display:flex;gap:6px;background:white;padding:10px 16px;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
 .tab-btn{background:var(--bg);color:var(--texto);padding:10px 18px;border-radius:999px;white-space:nowrap;font-weight:500;}
 .tab-btn.active{background:var(--gradiente);color:white;}
-
 main{padding:20px;max-width:1200px;margin:0 auto;}
 .tab-content{display:none;}
 .tab-content.active{display:block;}
-
 .dashboard-flex{display:flex;flex-wrap:wrap;gap:14px;}
 .card{background:var(--card);border-radius:16px;padding:18px;flex:1;min-width:220px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
 .card h3{margin:0 0 8px;font-size:0.85em;color:var(--cinza);font-weight:600;}
@@ -55,11 +51,9 @@ main{padding:20px;max-width:1200px;margin:0 auto;}
 .chart-box{background:var(--card);border-radius:16px;padding:18px;flex:1;min-width:280px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
 .chart-box h3{margin-top:0;font-size:1em;}
 .pendentes-box{background:var(--card);border-radius:16px;padding:18px;flex:1;min-width:280px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
-
 form{background:var(--card);padding:18px;border-radius:16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
 form input, form select{flex:1;min-width:130px;}
 form button[type=submit]{background:var(--gradiente);color:white;padding:10px 24px;font-weight:600;}
-
 .table-wrapper{overflow-x:auto;background:var(--card);border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
 table{width:100%;border-collapse:collapse;min-width:600px;}
 th, td{padding:12px;text-align:left;border-bottom:1px solid #eee;font-size:0.9em;}
@@ -68,25 +62,20 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 .linha-DespesaVariavel{border-left:4px solid var(--cor-variavel);}
 .linha-DespesaFixa{border-left:4px solid var(--cor-fixa);}
 .linha-Transferencia{border-left:4px solid var(--cor-transferencia);}
-
 .filtros-transacoes{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
 .filtros-transacoes select{background:white;}
-
 .fab{position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;background:var(--gradiente);color:white;font-size:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.3);z-index:900;}
-
 .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
 .modal-box{background:white;border-radius:20px;padding:24px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
 .modal-box-lg{max-width:620px;}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
 .modal-header h3{margin:0;color:var(--azul);}
 .modal-close{background:none;font-size:1.4em;color:var(--cinza);padding:4px 10px;}
-
 .tipo-selector{display:flex;gap:8px;margin-bottom:12px;}
 .tipo-btn{flex:1;padding:14px;border-radius:12px;background:#f0f1f3;color:var(--texto);font-weight:600;}
 .tipo-btn.despesa-btn.active{background:var(--cor-variavel);color:white;}
 .tipo-btn.receita-btn.active{background:var(--cor-entrada);color:white;}
 .tipo-btn.transferencia-btn.active{background:var(--cor-transferencia);color:white;}
-
 #formMovimento, #formTransferencia{flex-direction:column;box-shadow:none;padding:0;}
 #formMovimento label, #formTransferencia label{font-size:0.85em;color:var(--cinza);font-weight:600;margin-bottom:-4px;}
 .subtipo-selector{display:flex;gap:8px;flex-wrap:wrap;}
@@ -94,7 +83,6 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 .subtipo-btn.active{background:var(--azul);color:white;}
 .freq-btn{padding:8px 10px;border-radius:10px;background:#f0f1f3;color:var(--texto);font-size:0.85em;}
 .freq-btn.active{background:var(--cor-fixa);color:white;}
-
 .config-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:2px solid var(--bg);flex-wrap:wrap;}
 .config-tab-btn{background:none;padding:10px 16px;color:var(--cinza);font-weight:600;border-radius:10px 10px 0 0;}
 .config-tab-btn.active{color:var(--azul);background:var(--bg);}
@@ -113,7 +101,6 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 .widget-check-item label{display:flex;align-items:center;gap:8px;}
 .cor-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;}
 .cor-item input[type=color]{width:60px;height:36px;padding:2px;}
-
 .lock-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--gradiente);display:flex;align-items:center;justify-content:center;z-index:2000;}
 .lock-box{background:white;padding:36px;border-radius:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
 .lock-box img{height:70px;margin-bottom:16px;}
@@ -124,7 +111,6 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 </style>
 </head>
 <body>
-
 <div id="lockScreen" class="lock-screen">
   <div class="lock-box">
     <img src="icon.png" alt="Easy Money">
@@ -135,9 +121,7 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
     <p id="loginErro">Email ou senha incorretos.</p>
   </div>
 </div>
-
 <div id="appContent" style="display:none;">
-
 <header>
   <div class="toggle-perfil">
     <button class="toggle-btn active" data-perfil="Pessoal">Pessoal</button>
@@ -149,19 +133,15 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
     <button class="icon-btn" id="btnSair">Sair</button>
   </div>
 </header>
-
 <nav id="tabs">
   <button data-tab="dashboard" class="tab-btn active">Dashboard</button>
   <button data-tab="contas" class="tab-btn">Contas</button>
   <button data-tab="transacoes" class="tab-btn">Transações</button>
 </nav>
-
 <main>
-
   <section id="dashboard" class="tab-content active">
     <div id="dashboardContainer" class="dashboard-flex"></div>
   </section>
-
   <section id="contas" class="tab-content">
     <div class="config-list-header">
       <h2>Contas</h2>
@@ -182,7 +162,6 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
     </div>
     <div class="config-list" id="listaContasEdicao" style="display:none;"></div>
   </section>
-
   <section id="transacoes" class="tab-content">
     <h2>Transações</h2>
     <button id="btnAtualizarRecorrencias">Atualizar Recorrências</button><br><br>
@@ -209,11 +188,8 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
       </table>
     </div>
   </section>
-
 </main>
-
 <button class="fab" id="btnAdicionar">+</button>
-
 <div id="modalAdd" class="modal-overlay" style="display:none;">
   <div class="modal-box">
     <div class="modal-header"><h3>Nova Transação</h3><button class="modal-close" id="btnCloseAdd">&times;</button></div>
@@ -222,7 +198,6 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
       <button type="button" class="tipo-btn receita-btn" data-tipo="Receita">Receita</button>
       <button type="button" class="tipo-btn transferencia-btn" data-tipo="Transferencia">Transferência</button>
     </div>
-
     <form id="formMovimento" style="display:none;">
       <input type="hidden" id="movTipo">
       <input type="hidden" id="movEditId">
@@ -256,7 +231,6 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
       <select id="movStatus"><option>Pago</option><option>Programado</option></select>
       <button type="submit" id="btnSalvarMov">Salvar</button>
     </form>
-
     <form id="formTransferencia" style="display:none;">
       <label>Data</label>
       <input type="date" id="transfData" required>
@@ -272,17 +246,14 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
     </form>
   </div>
 </div>
-
 <div id="modalConfig" class="modal-overlay" style="display:none;">
   <div class="modal-box modal-box-lg">
     <div class="modal-header"><h3>Configurações</h3><button class="modal-close" id="btnCloseConfig">&times;</button></div>
-
     <div class="config-tabs">
       <button class="config-tab-btn active" data-ctab="ctabCategorias">Categorias</button>
       <button class="config-tab-btn" data-ctab="ctabWidgets">Widgets</button>
       <button class="config-tab-btn" data-ctab="ctabCores">Cores</button>
     </div>
-
     <div id="ctabCategorias" class="config-tab-content active">
       <div class="config-list-header">
         <h4>Categorias</h4>
@@ -296,12 +267,10 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
       </form>
       <div class="config-list" id="listaCategoriasConfig"></div>
     </div>
-
     <div id="ctabWidgets" class="config-tab-content">
       <div class="config-list-header"><h4>Widgets do Dashboard (arraste para reordenar)</h4></div>
       <div class="config-list" id="listaWidgetsConfig"></div>
     </div>
-
     <div id="ctabCores" class="config-tab-content">
       <div class="config-list-header"><h4>Cores das Transações</h4></div>
       <div class="cor-item"><label>Entradas (Receitas)</label><input type="color" id="corEntrada"></div>
@@ -309,12 +278,9 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
       <div class="cor-item"><label>Contas Fixas</label><input type="color" id="corFixa"></div>
       <div class="cor-item"><label>Transferências</label><input type="color" id="corTransferencia"></div>
     </div>
-
   </div>
 </div>
-
 </div>
-
 <script>
 firebase.initializeApp({
   apiKey: "AIzaSyDMZAt_Ni9LvgJkLooq2geBOZAwwWCPa18",
@@ -326,12 +292,17 @@ firebase.initializeApp({
 });
 var db = firebase.firestore();
 
+var appIniciado = false;
 firebase.auth().onAuthStateChanged(function(user){
   if(user){
-    document.getElementById('lockScreen').style.display = 'none';
+    var lock = document.getElementById('lockScreen');
+    if(lock && lock.parentNode) lock.parentNode.removeChild(lock);
     document.getElementById('appContent').style.display = 'block';
+    if(!appIniciado){
+      appIniciado = true;
+      iniciarApp();
+    }
   } else {
-    document.getElementById('lockScreen').style.display = 'flex';
     document.getElementById('appContent').style.display = 'none';
   }
 });
@@ -344,7 +315,6 @@ document.getElementById('btnEntrar').addEventListener('click', function(){
   });
 });
 document.getElementById('btnSair').addEventListener('click', function(){ firebase.auth().signOut(); });
-
 var contasRef = db.collection('contas');
 var lancamentosRef = db.collection('lancamentos');
 var transferenciasRef = db.collection('transferencias');
@@ -352,12 +322,10 @@ var categoriasRef = db.collection('categorias');
 var recorrenciasRef = db.collection('recorrencias');
 var configDashRef = db.collection('config').doc('dashboard');
 var configCoresRef = db.collection('config').doc('cores');
-
 var contas = [], lancamentos = [], transferencias = [], categorias = [], recorrencias = [];
 var perfilAtual = 'Pessoal';
 var dashboardConfig = {};
 var modoEdicaoContasTab = false, modoEdicaoCategorias = false;
-
 var WIDGETS_DISPONIVEIS = [
   {key:'saldoAtual', label:'Saldo Atual', tipo:'card'},
   {key:'saldoPrevisto', label:'Saldo Previsto (fim do mes)', tipo:'card'},
@@ -369,10 +337,11 @@ var WIDGETS_DISPONIVEIS = [
   {key:'receitaDespesa1a', label:'Receita x Despesa - 1 ano', tipo:'chart'},
   {key:'pendentesFixas', label:'Recorrencias Pendentes', tipo:'lista'}
 ];
-
 function formatMoeda(v){ return (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
 function formatarData(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function contaEhVisivel(c){ return c.perfil === perfilAtual; }
+
+function iniciarApp(){
 
 categoriasRef.get().then(function(snap){
   if(snap.empty){
@@ -396,7 +365,6 @@ categoriasRef.get().then(function(snap){
     defaults.forEach(function(c){ categoriasRef.add(c); });
   }
 });
-
 contasRef.onSnapshot(function(snap){
   contas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderContas(); renderContasEdicao(); renderDashboard(); popularFiltroConta();
@@ -432,6 +400,11 @@ configCoresRef.onSnapshot(function(doc){
   document.getElementById('corFixa').value = cores.fixa;
   document.getElementById('corTransferencia').value = cores.transferencia;
 });
+
+setTimeout(gerarOcorrenciasPendentes, 3000);
+
+}
+
 ['corEntrada','corVariavel','corFixa','corTransferencia'].forEach(function(id){
   document.getElementById(id).addEventListener('change', function(){
     configCoresRef.set({
@@ -442,9 +415,7 @@ configCoresRef.onSnapshot(function(doc){
     });
   });
 });
-
 function ordemPadraoWidgets(){ return WIDGETS_DISPONIVEIS.map(function(w){ return {key:w.key, visible:true}; }); }
-
 function saldoAtualConta(contaId){
   var conta = contas.find(function(c){ return c.id === contaId; });
   if(!conta) return 0;
@@ -473,7 +444,6 @@ function saldoAtualPerfil(perfil){
 function saldoPrevistoPerfil(perfil){
   return contas.filter(function(c){ return c.perfil === perfil; }).reduce(function(s,c){ return s + saldoPrevistoConta(c.id); }, 0);
 }
-
 function criarWidgetEl(key){
   var def = WIDGETS_DISPONIVEIS.find(function(w){ return w.key === key; });
   if(!def) return null;
@@ -590,7 +560,6 @@ function renderPendentes(listId){
     ul.appendChild(li);
   });
 }
-
 function tornarArrastavel(container, onDrop){
   var dragEl = null;
   container.querySelectorAll('[draggable=true]').forEach(function(row){
@@ -608,7 +577,6 @@ function tornarArrastavel(container, onDrop){
     });
   });
 }
-
 function renderContas(){
   var tbody = document.querySelector('#tabelaContas tbody');
   if(!tbody) return;
@@ -675,7 +643,6 @@ document.getElementById('formContaTab').addEventListener('submit', function(e){
   document.getElementById('formContaTab').style.display = 'none';
   document.getElementById('formContaTab').reset();
 });
-
 function excluirCategoria(e, id){ e.stopPropagation(); if(confirm('Excluir esta categoria?')) categoriasRef.doc(id).delete(); }
 function editarCategoria(c){
   document.getElementById('cfgCategoriaId').value = c.id;
@@ -730,7 +697,6 @@ document.getElementById('formCategoriaConfig').addEventListener('submit', functi
   document.getElementById('formCategoriaConfig').style.display = 'none';
   document.getElementById('formCategoriaConfig').reset();
 });
-
 function renderWidgetsConfig(){
   var container = document.getElementById('listaWidgetsConfig');
   if(!container) return;
@@ -760,7 +726,6 @@ function salvarOrdemWidgets(container){
   });
   configDashRef.set({ordem: novaOrdem});
 }
-
 function popularContaSelectFiltrado(sel){
   sel.innerHTML = '';
   contas.filter(contaEhVisivel).forEach(function(c){
@@ -789,7 +754,6 @@ function popularFiltroConta(){
     var opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.descricao; sel.appendChild(opt);
   });
 }
-
 function dentroDoPeriodo(dataStr, filtro){
   var d = new Date(dataStr+'T00:00:00');
   var now = new Date();
@@ -809,12 +773,10 @@ function togglePago(id){
   lancamentosRef.doc(id).update({status: l.status === 'Pago' ? 'Programado' : 'Pago'});
 }
 function excluirTransferencia(id){ if(confirm('Excluir esta transferencia?')) transferenciasRef.doc(id).delete(); }
-
 function renderTransacoes(){
   var periodoEl = document.getElementById('filtroPeriodo');
   if(!periodoEl) return;
   var periodo = periodoEl.value, tipo = document.getElementById('filtroTipo').value, contaFiltro = document.getElementById('filtroConta').value;
-
   var linhas = [];
   lancamentos.filter(function(l){ return l.perfil === perfilAtual; }).forEach(function(l){
     var catTipo = l.tipoMov === 'Receita' ? 'Receita' : (l.subtipo === 'Fixa' ? 'DespesaFixa' : 'DespesaVariavel');
@@ -827,7 +789,6 @@ function renderTransacoes(){
   }).forEach(function(t){
     linhas.push({tipoLinha:'Transferencia', data:t.data, contaId:t.contaOrigemId, contaDestinoId:t.contaDestinoId, categoria:'Transferência', descricao:t.descricao, status:'Pago', valor:t.valor, id:t.id, origem:'transferencia'});
   });
-
   linhas = linhas.filter(function(l){
     if(!dentroDoPeriodo(l.data, periodo)) return false;
     if(tipo !== 'todos' && l.tipoLinha !== tipo) return false;
@@ -835,7 +796,6 @@ function renderTransacoes(){
     return true;
   });
   linhas.sort(function(a,b){ return b.data.localeCompare(a.data); });
-
   var tbody = document.querySelector('#tabelaTransacoes tbody');
   tbody.innerHTML = '';
   linhas.forEach(function(l){
@@ -861,7 +821,6 @@ function renderTransacoes(){
 document.getElementById('filtroPeriodo').addEventListener('change', renderTransacoes);
 document.getElementById('filtroTipo').addEventListener('change', renderTransacoes);
 document.getElementById('filtroConta').addEventListener('change', renderTransacoes);
-
 function calcularProximaOcorrencia(r, hoje){
   if(r.frequencia === 'Diário') return hoje;
   if(r.frequencia === 'Semanal'){
@@ -896,8 +855,6 @@ document.getElementById('btnAtualizarRecorrencias').addEventListener('click', fu
   gerarOcorrenciasPendentes();
   alert('Recorrencias verificadas!');
 });
-setTimeout(gerarOcorrenciasPendentes, 3000);
-
 function editarLancamento(id){
   var l = lancamentos.find(function(x){ return x.id === id; });
   if(!l) return;
@@ -915,7 +872,6 @@ function editarLancamento(id){
   document.getElementById('movStatus').value = l.status;
   document.getElementById('btnSalvarMov').textContent = 'Salvar Edição';
 }
-
 function abrirModalAdd(){
   document.getElementById('modalAdd').style.display = 'flex';
   document.getElementById('formMovimento').style.display = 'none';
@@ -927,7 +883,6 @@ function abrirModalAdd(){
 function fecharModalAdd(){ document.getElementById('modalAdd').style.display = 'none'; document.getElementById('btnSalvarMov').textContent = 'Salvar'; }
 document.getElementById('btnAdicionar').addEventListener('click', abrirModalAdd);
 document.getElementById('btnCloseAdd').addEventListener('click', fecharModalAdd);
-
 document.querySelectorAll('.tipo-btn').forEach(function(btn){
   btn.addEventListener('click', function(){
     document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('active'); });
@@ -1018,7 +973,6 @@ document.getElementById('formTransferencia').addEventListener('submit', function
   fecharModalAdd();
   e.target.reset();
 });
-
 function abrirModalConfig(){ document.getElementById('modalConfig').style.display = 'flex'; }
 function fecharModalConfig(){ document.getElementById('modalConfig').style.display = 'none'; }
 document.getElementById('btnConfig').addEventListener('click', abrirModalConfig);
@@ -1031,7 +985,6 @@ document.querySelectorAll('.config-tab-btn').forEach(function(btn){
     document.getElementById(btn.getAttribute('data-ctab')).classList.add('active');
   });
 });
-
 document.querySelectorAll('.tab-btn').forEach(function(btn){
   btn.addEventListener('click', function(){
     var alvo = btn.getAttribute('data-tab');
