@@ -40,9 +40,21 @@ header{position:relative;background:var(--gradiente);color:white;padding:20px 24
 .toggle-btn.active{background:white;color:var(--azul);}
 .header-actions{display:flex;gap:8px;z-index:2;}
 .icon-btn{background:rgba(255,255,255,0.2);color:white;padding:8px 16px;border-radius:10px;}
-.mes-seletor-bar{display:flex;align-items:center;justify-content:center;gap:16px;background:white;padding:10px;border-bottom:1px solid #eee;}
+.mes-seletor-bar{position:relative;display:flex;align-items:center;justify-content:center;gap:16px;background:white;padding:10px;border-bottom:1px solid #eee;}
 .mes-seta{background:var(--bg);color:var(--azul);width:36px;height:36px;border-radius:50%;font-size:1.1em;padding:0;}
-#mesAtualLabel{font-weight:700;color:var(--azul);min-width:170px;text-align:center;font-size:1.05em;}
+.mes-label-wrap{position:relative;display:flex;flex-direction:column;align-items:center;}
+#mesAtualLabel{background:none;border:none;font-weight:700;color:var(--azul);min-width:170px;text-align:center;font-size:1.05em;cursor:pointer;padding:4px 10px;border-radius:8px;}
+#mesAtualLabel:hover{background:var(--bg);}
+#mesAtualLabel.vigente{background:rgba(20,184,120,0.15);color:var(--verde);}
+.mes-vigente-tag{font-size:0.7em;color:var(--verde);font-weight:700;margin-top:-2px;}
+.dropdown-mes{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:10px;background:white;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.2);padding:16px;z-index:1500;width:280px;}
+.dropdown-mes-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-weight:700;color:var(--azul);}
+.mes-seta-mini{background:var(--bg);color:var(--azul);width:28px;height:28px;border-radius:50%;font-size:0.85em;padding:0;}
+.dropdown-mes-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.mes-grid-item{padding:10px 0;text-align:center;border-radius:10px;background:var(--bg);color:var(--texto);cursor:pointer;font-weight:600;font-size:0.85em;}
+.mes-grid-item:hover{background:#e5e7eb;}
+.mes-grid-item.selecionado{background:var(--azul);color:white;}
+.mes-grid-item.vigente-item{outline:2px solid var(--verde);}
 nav#tabs{display:flex;gap:6px;background:white;padding:10px 16px;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
 .tab-btn{background:var(--bg);color:var(--texto);padding:10px 18px;border-radius:999px;white-space:nowrap;font-weight:500;}
 .tab-btn.active{background:var(--gradiente);color:white;}
@@ -201,7 +213,18 @@ tbody tr:hover{background:#fafbfc;}
 </header>
 <div class="mes-seletor-bar">
   <button class="mes-seta" id="btnMesAnterior">&#8592;</button>
-  <span id="mesAtualLabel">-</span>
+  <div class="mes-label-wrap">
+    <button type="button" id="mesAtualLabel">-</button>
+    <span id="mesVigenteTag" class="mes-vigente-tag" style="display:none;">Mes vigente</span>
+    <div id="dropdownMes" class="dropdown-mes" style="display:none;">
+      <div class="dropdown-mes-header">
+        <button type="button" id="btnAnoAnterior" class="mes-seta-mini">&#8592;</button>
+        <span id="anoDropdownLabel">2026</span>
+        <button type="button" id="btnAnoProximo" class="mes-seta-mini">&#8594;</button>
+      </div>
+      <div class="dropdown-mes-grid" id="gridMeses"></div>
+    </div>
+  </div>
   <button class="mes-seta" id="btnMesProximo">&#8594;</button>
 </div>
 <nav id="tabs">
@@ -638,10 +661,17 @@ function formatMoeda(v){ return (v||0).toLocaleString('pt-BR',{style:'currency',
 function formatarData(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function contaEhVisivel(c){ return c.perfil === perfilAtual; }
 
+var anoDropdown = mesSelecionado.getFullYear();
+var NOMES_MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
 function atualizarLabelMes(){
   var label = mesSelecionado.toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
   label = label.charAt(0).toUpperCase() + label.slice(1);
   document.getElementById('mesAtualLabel').textContent = label;
+  var hoje = new Date();
+  var ehVigente = (mesSelecionado.getFullYear() === hoje.getFullYear() && mesSelecionado.getMonth() === hoje.getMonth());
+  document.getElementById('mesAtualLabel').classList.toggle('vigente', ehVigente);
+  document.getElementById('mesVigenteTag').style.display = ehVigente ? 'block' : 'none';
 }
 document.getElementById('btnMesAnterior').addEventListener('click', function(){
   mesSelecionado.setMonth(mesSelecionado.getMonth()-1);
@@ -650,6 +680,56 @@ document.getElementById('btnMesAnterior').addEventListener('click', function(){
 document.getElementById('btnMesProximo').addEventListener('click', function(){
   mesSelecionado.setMonth(mesSelecionado.getMonth()+1);
   atualizarMes();
+});
+document.getElementById('mesAtualLabel').addEventListener('click', function(){
+  var dropdown = document.getElementById('dropdownMes');
+  if(dropdown.style.display === 'block'){
+    dropdown.style.display = 'none';
+  } else {
+    anoDropdown = mesSelecionado.getFullYear();
+    renderGridMeses();
+    dropdown.style.display = 'block';
+  }
+});
+document.getElementById('btnAnoAnterior').addEventListener('click', function(){
+  anoDropdown--;
+  renderGridMeses();
+});
+document.getElementById('btnAnoProximo').addEventListener('click', function(){
+  anoDropdown++;
+  renderGridMeses();
+});
+function renderGridMeses(){
+  document.getElementById('anoDropdownLabel').textContent = anoDropdown;
+  var grid = document.getElementById('gridMeses');
+  grid.innerHTML = '';
+  var hoje = new Date();
+  for(var m=0;m<12;m++){
+    var div = document.createElement('div');
+    div.className = 'mes-grid-item';
+    if(anoDropdown === mesSelecionado.getFullYear() && m === mesSelecionado.getMonth()){
+      div.classList.add('selecionado');
+    }
+    if(anoDropdown === hoje.getFullYear() && m === hoje.getMonth()){
+      div.classList.add('vigente-item');
+    }
+    div.textContent = NOMES_MESES_ABREV[m];
+    (function(mesEscolhido){
+      div.addEventListener('click', function(){
+        mesSelecionado = new Date(anoDropdown, mesEscolhido, 1);
+        document.getElementById('dropdownMes').style.display = 'none';
+        atualizarMes();
+      });
+    })(m);
+    grid.appendChild(div);
+  }
+}
+document.addEventListener('click', function(e){
+  var bar = document.querySelector('.mes-seletor-bar');
+  var dropdown = document.getElementById('dropdownMes');
+  if(dropdown && dropdown.style.display === 'block' && bar && !bar.contains(e.target)){
+    dropdown.style.display = 'none';
+  }
 });
 function atualizarMes(){
   atualizarLabelMes();
