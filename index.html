@@ -622,6 +622,8 @@ document.getElementById('btnCopiarCodigo').addEventListener('click', function(){
 });
 
 var contas = [], lancamentos = [], transferencias = [], categorias = [], recorrencias = [], dividas = [];
+var gerandoParcelas = false;
+var gerandoOcorrencias = false;
 var perfilAtual = 'Pessoal';
 var dashboardConfig = {};
 var modoEdicaoCategorias = false;
@@ -694,7 +696,6 @@ unsubscribers.push(contasRef.onSnapshot(function(snap){
 unsubscribers.push(lancamentosRef.onSnapshot(function(snap){
   lancamentos = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderTransacoes(); renderDashboard(); renderDividas(); atualizarRelatorios();
-  garantirParcelasDividas();
 }));
 unsubscribers.push(transferenciasRef.onSnapshot(function(snap){
   transferencias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
@@ -706,7 +707,6 @@ unsubscribers.push(categoriasRef.onSnapshot(function(snap){
 }));
 unsubscribers.push(recorrenciasRef.onSnapshot(function(snap){
   recorrencias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-  garantirOcorrenciasFuturas();
 }));
 unsubscribers.push(dividasRef.onSnapshot(function(snap){
   dividas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
@@ -1166,10 +1166,13 @@ function gerarOcorrenciasParaMes(ano, mes){
   });
 }
 function garantirOcorrenciasFuturas(){
+  if(gerandoOcorrencias) return;
+  gerandoOcorrencias = true;
   var hoje = new Date();
   var proximo = new Date(hoje.getFullYear(), hoje.getMonth()+1, 1);
   gerarOcorrenciasParaMes(hoje.getFullYear(), hoje.getMonth());
   gerarOcorrenciasParaMes(proximo.getFullYear(), proximo.getMonth());
+  setTimeout(function(){ gerandoOcorrencias = false; }, 2000);
 }
 
 function editarLancamento(id){
@@ -1470,22 +1473,54 @@ document.getElementById('btnExcluirDividaModal').addEventListener('click', funct
   }
 });
 function garantirParcelasDividas(){
+  if(gerandoParcelas) return;
+  gerandoParcelas = true;
+
+  var promessas = [];
+
   dividas.filter(function(dv){ return dv.ativa !== false; }).forEach(function(dv){
     var parcelasExistentes = lancamentos.filter(function(l){ return l.dividaId === dv.id; });
     if(parcelasExistentes.length >= dv.quantidadeParcelas) return;
+
     var dataBase = new Date(dv.dataInicio+'T00:00:00');
+
     for(var i=0;i<dv.quantidadeParcelas;i++){
+      var numeroParcela = i+1;
       var dataParcela = new Date(dataBase.getFullYear(), dataBase.getMonth()+i, dv.diaVencimento);
       var dataStr = formatarData(dataParcela);
-      var jaExiste = parcelasExistentes.some(function(l){ return l.data === dataStr; });
-      if(!jaExiste){
-        lancamentosRef.add({
-          data: dataStr, perfil: dv.perfil, contaId: dv.contaId, categoria: 'Dívidas',
-          descricao: dv.descricao+' (parcela '+(i+1)+'/'+dv.quantidadeParcelas+')',
-          tipoMov: 'Despesa', subtipo: 'Fixa', valor: dv.valorParcela, status: 'Programado', dividaId: dv.id
-        });
+
+      var jaExistePorNumero = parcelasExistentes.some(function(l){
+        return l.numeroParcela === numeroParcela;
+      });
+      var jaExistePorData = parcelasExistentes.some(function(l){
+        return l.data === dataStr && l.dividaId === dv.id;
+      });
+
+      if(!jaExistePorNumero && !jaExistePorData){
+        (function(num, ds, dv2){
+          var p = lancamentosRef.add({
+            data: ds,
+            perfil: dv2.perfil,
+            contaId: dv2.contaId,
+            categoria: 'Dívidas',
+            descricao: dv2.descricao+' (parcela '+num+'/'+dv2.quantidadeParcelas+')',
+            tipoMov: 'Despesa',
+            subtipo: 'Fixa',
+            valor: dv2.valorParcela,
+            status: 'Programado',
+            dividaId: dv2.id,
+            numeroParcela: num
+          });
+          promessas.push(p);
+        })(numeroParcela, dataStr, dv);
       }
     }
+  });
+
+  Promise.all(promessas).then(function(){
+    gerandoParcelas = false;
+  }).catch(function(){
+    gerandoParcelas = false;
   });
 }
 
