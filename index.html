@@ -120,30 +120,33 @@ tbody tr:hover{background:#fafbfc;}
 .cor-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;}
 .cor-item input[type=color]{width:60px;height:36px;padding:2px;}
 .lock-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--gradiente);display:flex;align-items:center;justify-content:center;z-index:2000;}
-.lock-box{background:white;padding:36px;border-radius:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+.lock-box{background:white;padding:36px;border-radius:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);width:90%;max-width:380px;}
 .lock-box img{height:70px;margin-bottom:16px;}
 .lock-box h2{margin-top:0;color:var(--azul);}
 .lock-box p{font-size:0.85em;color:var(--cinza);}
-.campo-login{font-size:1em;text-align:left;width:260px;padding:12px;margin-bottom:12px;display:block;}
-.lock-box button{padding:12px 28px;background:var(--gradiente);color:white;font-size:1em;font-weight:600;margin-top:6px;width:260px;}
+#formLogin{display:flex;flex-direction:column;align-items:center;background:none;box-shadow:none;padding:0;margin-bottom:0;gap:0;width:100%;}
+.campo-login{font-size:1em;text-align:left;width:100%;max-width:280px;padding:12px;margin-bottom:12px;display:block;}
+.lock-box button{padding:12px 28px;background:var(--gradiente);color:white;font-size:1em;font-weight:600;margin-top:6px;width:100%;max-width:280px;}
 #loginErro{color:var(--cor-variavel);font-weight:bold;display:none;margin-top:10px;font-size:0.85em;}
 .link-alternar{margin-top:14px;font-size:0.85em;color:var(--cinza);}
 .link-alternar a{color:var(--azul);font-weight:600;text-decoration:none;cursor:pointer;}
 
 @media (max-width: 700px){
   html, body{overflow-x:hidden;max-width:100%;}
-  header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px 10px;gap:4px;}
+  header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 14px;gap:6px;}
   .brand{order:1;position:static;transform:none;padding:0;justify-self:start;min-width:0;overflow:hidden;}
   .brand-logo{display:none;}
-  .brand-logo-mobile{display:block;height:28px;}
+  .brand-logo-mobile{display:block;height:40px;}
   .toggle-perfil{order:2;justify-self:center;min-width:0;}
-  .toggle-btn{padding:5px 10px;font-size:0.78em;}
-  .header-actions{order:3;justify-self:end;gap:3px;min-width:0;}
-  .icon-btn{padding:5px 8px;font-size:0.75em;white-space:nowrap;}
-  .mes-seletor-bar{padding:8px;gap:10px;}
-  #mesAtualLabel{min-width:130px;font-size:0.95em;}
-  nav#tabs{padding:8px 10px;}
-  .tab-btn{padding:8px 14px;font-size:0.88em;}
+  .toggle-btn{padding:8px 14px;font-size:0.88em;}
+  .header-actions{order:3;justify-self:end;gap:5px;min-width:0;}
+  .icon-btn{padding:7px 12px;font-size:0.82em;white-space:nowrap;}
+  .mes-seletor-bar{padding:12px;gap:14px;}
+  .mes-seta{width:40px;height:40px;font-size:1.2em;}
+  #mesAtualLabel{font-size:1.05em;min-width:150px;}
+  .mes-vigente-tag{font-size:0.75em;}
+  nav#tabs{padding:10px 12px;}
+  .tab-btn{padding:10px 18px;font-size:0.92em;}
   main{padding:12px;max-width:100%;}
   .card, .chart-box, .pendentes-box{min-width:100%;max-width:100%;}
   .modal-box{padding:18px;max-width:100%;}
@@ -151,20 +154,25 @@ tbody tr:hover{background:#fafbfc;}
   form{padding:14px;}
   .filtros-transacoes{flex-direction:column;}
   .filtros-transacoes select, .filtros-transacoes input{width:100%;}
-  .table-wrapper table, .table-wrapper thead, .table-wrapper tbody, .table-wrapper th, .table-wrapper td, .table-wrapper tr{
+
+  .table-wrapper-cards table, .table-wrapper-cards thead, .table-wrapper-cards tbody, .table-wrapper-cards th, .table-wrapper-cards td, .table-wrapper-cards tr{
     display:block;
   }
-  .table-wrapper{overflow-x:visible;background:transparent;box-shadow:none;}
-  .table-wrapper thead{display:none;}
-  .table-wrapper tr{
-    background:white;border-radius:12px;margin-bottom:10px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);max-width:100%;
+  .table-wrapper-cards table{min-width:0;width:100%;}
+  .table-wrapper-cards{overflow-x:visible;background:transparent;box-shadow:none;}
+  .table-wrapper-cards thead{display:none;}
+  .table-wrapper-cards tr{
+    background:white;border-radius:12px;margin-bottom:10px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);
   }
-  .table-wrapper td{
+  .table-wrapper-cards td{
     border:none;padding:6px 0;display:flex;justify-content:space-between;align-items:center;font-size:0.9em;text-align:right;flex-wrap:wrap;
   }
-  .table-wrapper td::before{
+  .table-wrapper-cards td::before{
     content:attr(data-label);font-weight:600;color:var(--cinza);margin-right:10px;text-align:left;
   }
+
+  #tabelaTransacoes{min-width:560px;}
+  #tabelaTransacoes th, #tabelaTransacoes td{padding:10px 8px;font-size:0.82em;}
 }
 </style>
 </head>
@@ -243,7 +251,11 @@ tbody tr:hover{background:#fafbfc;}
       <h2>Contas</h2>
       <div><button id="btnAddContaTab" class="btn-icon-add">+</button></div>
     </div>
-    <div class="table-wrapper">
+    <div class="card" style="margin-bottom:16px;">
+      <h3>Valor Total em Contas</h3>
+      <p id="valorTotalContas">R$ 0,00</p>
+    </div>
+    <div class="table-wrapper table-wrapper-cards">
       <table id="tabelaContas">
         <thead><tr><th>Descrição</th><th>Tipo</th><th>Saldo Atual</th><th>Saldo Previsto</th></tr></thead>
         <tbody></tbody>
@@ -279,7 +291,7 @@ tbody tr:hover{background:#fafbfc;}
       <div class="card"><h3>Meses para Quitar Tudo</h3><p id="resumoDividaMeses">0</p></div>
       <div class="card"><h3>Pago em Dívidas por Mês</h3><p id="resumoDividaMensal">R$ 0,00</p></div>
     </div>
-    <div class="table-wrapper">
+    <div class="table-wrapper table-wrapper-cards">
       <table id="tabelaDividas">
         <thead><tr><th>Descrição</th><th>Valor Restante</th><th>Parcelas</th><th>Parcela Mensal</th></tr></thead>
         <tbody></tbody>
@@ -970,16 +982,20 @@ function renderContas(){
   var tbody = document.querySelector('#tabelaContas tbody');
   if(!tbody) return;
   tbody.innerHTML = '';
+  var total = 0;
   contas.filter(contaEhVisivel).forEach(function(c){
+    var saldo = saldoAtualConta(c.id);
+    total += saldo;
     var tr = document.createElement('tr');
     tr.style.cursor = 'pointer';
     tr.innerHTML = '<td data-label="Descrição">'+c.descricao+'</td>'+
       '<td data-label="Tipo">'+c.tipo+'</td>'+
-      '<td data-label="Saldo Atual">'+formatMoeda(saldoAtualConta(c.id))+'</td>'+
+      '<td data-label="Saldo Atual">'+formatMoeda(saldo)+'</td>'+
       '<td data-label="Saldo Previsto">'+formatMoeda(saldoPrevistoConta(c.id))+'</td>';
     tr.addEventListener('click', function(){ abrirModalConta(c); });
     tbody.appendChild(tr);
   });
+  setText('valorTotalContas', formatMoeda(total));
 }
 function abrirModalConta(conta){
   document.getElementById('formContaModal').reset();
