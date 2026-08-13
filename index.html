@@ -120,6 +120,7 @@ tbody tr:hover{background:#fafbfc;}
     <h2 id="tituloLogin">Entrar</h2>
     <input type="email" id="loginEmail" class="campo-login" placeholder="Email" required>
     <input type="password" id="loginSenha" class="campo-login" placeholder="Senha" required>
+    <input type="text" id="loginConvite" class="campo-login" placeholder="Código de convite (opcional)" style="display:none;">
     <button id="btnEntrar">Entrar</button>
     <p id="loginErro"></p>
     <p class="link-alternar"><span id="textoAlternar">Não tem conta?</span> <a href="#" id="linkAlternar">Criar conta</a></p>
@@ -269,6 +270,7 @@ tbody tr:hover{background:#fafbfc;}
       <button class="config-tab-btn active" data-ctab="ctabCategorias">Categorias</button>
       <button class="config-tab-btn" data-ctab="ctabWidgets">Widgets</button>
       <button class="config-tab-btn" data-ctab="ctabCores">Cores</button>
+      <button class="config-tab-btn" data-ctab="ctabConvite">Convite</button>
     </div>
     <div id="ctabCategorias" class="config-tab-content active">
       <div class="config-list-header">
@@ -294,6 +296,14 @@ tbody tr:hover{background:#fafbfc;}
       <div class="cor-item"><label>Contas Fixas</label><input type="color" id="corFixa"></div>
       <div class="cor-item"><label>Transferências</label><input type="color" id="corTransferencia"></div>
     </div>
+    <div id="ctabConvite" class="config-tab-content">
+      <div class="config-list-header"><h4>Seu código de convite</h4></div>
+      <p style="font-size:0.9em;color:var(--cinza);">Compartilhe este código com quem você quer que veja os mesmos dados (ex: seu parceiro). A pessoa deve colar esse código no campo "Código de convite" ao criar a conta dela.</p>
+      <div class="config-list-item">
+        <span class="item-info" id="codigoConviteTexto" style="font-family:monospace;font-weight:bold;word-break:break-all;">-</span>
+        <button id="btnCopiarCodigo" class="btn-secundario">Copiar</button>
+      </div>
+    </div>
   </div>
 </div>
 </div>
@@ -308,22 +318,63 @@ firebase.initializeApp({
 });
 var db = firebase.firestore();
 
+var contasRef, lancamentosRef, transferenciasRef, categoriasRef, recorrenciasRef, configDashRef, configCoresRef;
+var currentWorkspaceId = null;
 var appIniciado = false;
+var unsubscribers = [];
+
 firebase.auth().onAuthStateChanged(function(user){
   if(user){
     document.getElementById('lockScreen').style.display = 'none';
     document.getElementById('appContent').style.display = 'block';
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginSenha').value = '';
+    document.getElementById('loginConvite').value = '';
     if(!appIniciado){
       appIniciado = true;
-      iniciarApp();
+      carregarWorkspaceEIniciar(user);
     }
   } else {
     document.getElementById('lockScreen').style.display = 'flex';
     document.getElementById('appContent').style.display = 'none';
+    pararApp();
   }
 });
+
+function pararApp(){
+  unsubscribers.forEach(function(u){ u(); });
+  unsubscribers = [];
+  contas = []; lancamentos = []; transferencias = []; categorias = []; recorrencias = [];
+  appIniciado = false;
+  currentWorkspaceId = null;
+}
+
+function carregarWorkspaceEIniciar(user){
+  db.collection('usuarios').doc(user.uid).get().then(function(doc){
+    if(doc.exists && doc.data().workspaceId){
+      currentWorkspaceId = doc.data().workspaceId;
+      definirReferenciasEIniciar();
+    } else {
+      currentWorkspaceId = user.uid;
+      db.collection('usuarios').doc(user.uid).set({workspaceId: currentWorkspaceId}).then(function(){
+        definirReferenciasEIniciar();
+      });
+    }
+  });
+}
+function definirReferenciasEIniciar(){
+  var wsRef = db.collection('workspaces').doc(currentWorkspaceId);
+  contasRef = wsRef.collection('contas');
+  lancamentosRef = wsRef.collection('lancamentos');
+  transferenciasRef = wsRef.collection('transferencias');
+  categoriasRef = wsRef.collection('categorias');
+  recorrenciasRef = wsRef.collection('recorrencias');
+  configDashRef = wsRef.collection('config').doc('dashboard');
+  configCoresRef = wsRef.collection('config').doc('cores');
+  var el = document.getElementById('codigoConviteTexto');
+  if(el) el.textContent = currentWorkspaceId;
+  iniciarApp();
+}
 
 var modoCadastro = false;
 document.getElementById('linkAlternar').addEventListener('click', function(e){
@@ -333,6 +384,7 @@ document.getElementById('linkAlternar').addEventListener('click', function(e){
   document.getElementById('btnEntrar').textContent = modoCadastro ? 'Criar Conta' : 'Entrar';
   document.getElementById('textoAlternar').textContent = modoCadastro ? 'Já tem conta?' : 'Não tem conta?';
   document.getElementById('linkAlternar').textContent = modoCadastro ? 'Entrar' : 'Criar conta';
+  document.getElementById('loginConvite').style.display = modoCadastro ? 'block' : 'none';
   document.getElementById('loginErro').style.display = 'none';
 });
 document.getElementById('btnEntrar').addEventListener('click', function(){
@@ -341,7 +393,12 @@ document.getElementById('btnEntrar').addEventListener('click', function(){
   var erroEl = document.getElementById('loginErro');
   erroEl.style.display = 'none';
   if(modoCadastro){
-    firebase.auth().createUserWithEmailAndPassword(email, senha).catch(function(err){
+    var codigoConvite = document.getElementById('loginConvite').value.trim();
+    firebase.auth().createUserWithEmailAndPassword(email, senha).then(function(cred){
+      var novoUid = cred.user.uid;
+      var workspaceEscolhido = codigoConvite ? codigoConvite : novoUid;
+      return db.collection('usuarios').doc(novoUid).set({workspaceId: workspaceEscolhido});
+    }).catch(function(err){
       erroEl.textContent = err.message;
       erroEl.style.display = 'block';
     });
@@ -353,14 +410,13 @@ document.getElementById('btnEntrar').addEventListener('click', function(){
   }
 });
 document.getElementById('btnSair').addEventListener('click', function(){ firebase.auth().signOut(); });
+document.getElementById('btnCopiarCodigo').addEventListener('click', function(){
+  var texto = document.getElementById('codigoConviteTexto').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(texto).then(function(){ alert('Código copiado!'); });
+  }
+});
 
-var contasRef = db.collection('contas');
-var lancamentosRef = db.collection('lancamentos');
-var transferenciasRef = db.collection('transferencias');
-var categoriasRef = db.collection('categorias');
-var recorrenciasRef = db.collection('recorrencias');
-var configDashRef = db.collection('config').doc('dashboard');
-var configCoresRef = db.collection('config').doc('cores');
 var contas = [], lancamentos = [], transferencias = [], categorias = [], recorrencias = [];
 var perfilAtual = 'Pessoal';
 var dashboardConfig = {};
@@ -404,31 +460,31 @@ categoriasRef.get().then(function(snap){
     defaults.forEach(function(c){ categoriasRef.add(c); });
   }
 });
-contasRef.onSnapshot(function(snap){
+unsubscribers.push(contasRef.onSnapshot(function(snap){
   contas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderContas(); renderDashboard(); popularFiltroConta();
-});
-lancamentosRef.onSnapshot(function(snap){
+}));
+unsubscribers.push(lancamentosRef.onSnapshot(function(snap){
   lancamentos = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderTransacoes(); renderDashboard();
-});
-transferenciasRef.onSnapshot(function(snap){
+}));
+unsubscribers.push(transferenciasRef.onSnapshot(function(snap){
   transferencias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderTransacoes(); renderContas(); renderDashboard();
-});
-categoriasRef.onSnapshot(function(snap){
+}));
+unsubscribers.push(categoriasRef.onSnapshot(function(snap){
   categorias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderCategoriasConfigList();
-});
-recorrenciasRef.onSnapshot(function(snap){
+}));
+unsubscribers.push(recorrenciasRef.onSnapshot(function(snap){
   recorrencias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-});
-configDashRef.onSnapshot(function(doc){
+}));
+unsubscribers.push(configDashRef.onSnapshot(function(doc){
   dashboardConfig = doc.exists ? doc.data() : {ordem: ordemPadraoWidgets()};
   if(!dashboardConfig.ordem) dashboardConfig.ordem = ordemPadraoWidgets();
   renderWidgetsConfig(); renderDashboard();
-});
-configCoresRef.onSnapshot(function(doc){
+}));
+unsubscribers.push(configCoresRef.onSnapshot(function(doc){
   var cores = doc.exists ? doc.data() : {entrada:'#16a34a',variavel:'#e53e3e',fixa:'#f59e0b',transferencia:'#2563eb'};
   document.documentElement.style.setProperty('--cor-entrada', cores.entrada);
   document.documentElement.style.setProperty('--cor-variavel', cores.variavel);
@@ -438,7 +494,7 @@ configCoresRef.onSnapshot(function(doc){
   document.getElementById('corVariavel').value = cores.variavel;
   document.getElementById('corFixa').value = cores.fixa;
   document.getElementById('corTransferencia').value = cores.transferencia;
-});
+}));
 
 setTimeout(gerarOcorrenciasPendentes, 3000);
 
