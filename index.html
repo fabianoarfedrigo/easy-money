@@ -10,6 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <style>
 :root{
   --azul:#123a6b;
@@ -106,8 +107,9 @@ tbody tr:hover{background:#fafbfc;}
 .lock-box{background:white;padding:36px;border-radius:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
 .lock-box img{height:70px;margin-bottom:16px;}
 .lock-box h2{margin-top:0;color:var(--azul);}
+.lock-box p{font-size:0.85em;color:var(--cinza);}
 .campo-login{font-size:1em;text-align:left;width:260px;padding:12px;margin-bottom:12px;display:block;}
-.lock-box button{padding:12px 28px;background:var(--gradiente);color:white;font-size:1em;font-weight:600;margin-top:6px;}
+.lock-box button{padding:12px 28px;background:var(--gradiente);color:white;font-size:1em;font-weight:600;margin-top:6px;width:260px;}
 #loginErro{color:var(--cor-variavel);font-weight:bold;display:none;margin-top:10px;font-size:0.85em;}
 .link-alternar{margin-top:14px;font-size:0.85em;color:var(--cinza);}
 .link-alternar a{color:var(--azul);font-weight:600;text-decoration:none;cursor:pointer;}
@@ -126,6 +128,19 @@ tbody tr:hover{background:#fafbfc;}
     <p class="link-alternar"><span id="textoAlternar">Não tem conta?</span> <a href="#" id="linkAlternar">Criar conta</a></p>
   </div>
 </div>
+
+<div id="verificacaoScreen" class="lock-screen" style="display:none;">
+  <div class="lock-box">
+    <img src="icon.png" alt="Easy Money">
+    <h2>Confirme seu email</h2>
+    <p>Enviamos um link de confirmação para o seu email. Clique nele e depois volte aqui.</p>
+    <button id="btnJaConfirmei">Já confirmei, continuar</button>
+    <button id="btnReenviarEmail" style="background:#f0f1f3;color:var(--texto);">Reenviar email</button>
+    <p id="verificacaoMsg" style="color:var(--verde);display:none;"></p>
+    <p class="link-alternar"><a href="#" id="linkSairVerificacao">Sair e tentar outra conta</a></p>
+  </div>
+</div>
+
 <div id="appContent" style="display:none;">
 <header>
   <div class="toggle-perfil">
@@ -298,7 +313,7 @@ tbody tr:hover{background:#fafbfc;}
     </div>
     <div id="ctabConvite" class="config-tab-content">
       <div class="config-list-header"><h4>Seu código de convite</h4></div>
-      <p style="font-size:0.9em;color:var(--cinza);">Compartilhe este código com quem você quer que veja os mesmos dados (ex: seu parceiro). A pessoa deve colar esse código no campo "Código de convite" ao criar a conta dela.</p>
+      <p style="font-size:0.9em;color:var(--cinza);">Compartilhe este código com quem você quer que veja os mesmos dados.</p>
       <div class="config-list-item">
         <span class="item-info" id="codigoConviteTexto" style="font-family:monospace;font-weight:bold;word-break:break-all;">-</span>
         <button id="btnCopiarCodigo" class="btn-secundario">Copiar</button>
@@ -318,6 +333,22 @@ firebase.initializeApp({
 });
 var db = firebase.firestore();
 
+var EMAILJS_PUBLIC_KEY = "oPevp9wLP2Tce9sON";
+var EMAILJS_SERVICE_ID = "service_5f6jnd7";
+var EMAILJS_TEMPLATE_ID = "template_szq23kb";
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+function notificarDonoWorkspace(workspaceId, novoEmail){
+  db.collection('workspaces').doc(workspaceId).get().then(function(doc){
+    if(doc.exists && doc.data().ownerEmail){
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email: doc.data().ownerEmail,
+        novo_usuario: novoEmail
+      });
+    }
+  });
+}
+
 var contasRef, lancamentosRef, transferenciasRef, categoriasRef, recorrenciasRef, configDashRef, configCoresRef;
 var currentWorkspaceId = null;
 var appIniciado = false;
@@ -325,20 +356,49 @@ var unsubscribers = [];
 
 firebase.auth().onAuthStateChanged(function(user){
   if(user){
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('appContent').style.display = 'block';
-    document.getElementById('loginEmail').value = '';
-    document.getElementById('loginSenha').value = '';
-    document.getElementById('loginConvite').value = '';
-    if(!appIniciado){
-      appIniciado = true;
-      carregarWorkspaceEIniciar(user);
+    if(user.emailVerified){
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('verificacaoScreen').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginSenha').value = '';
+      document.getElementById('loginConvite').value = '';
+      if(!appIniciado){
+        appIniciado = true;
+        carregarWorkspaceEIniciar(user);
+      }
+    } else {
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('appContent').style.display = 'none';
+      document.getElementById('verificacaoScreen').style.display = 'flex';
     }
   } else {
     document.getElementById('lockScreen').style.display = 'flex';
+    document.getElementById('verificacaoScreen').style.display = 'none';
     document.getElementById('appContent').style.display = 'none';
     pararApp();
   }
+});
+
+document.getElementById('btnJaConfirmei').addEventListener('click', function(){
+  firebase.auth().currentUser.reload().then(function(){
+    if(firebase.auth().currentUser.emailVerified){
+      location.reload();
+    } else {
+      alert('Ainda nao detectamos a confirmacao. Verifique se voce clicou no link do email.');
+    }
+  });
+});
+document.getElementById('btnReenviarEmail').addEventListener('click', function(){
+  firebase.auth().currentUser.sendEmailVerification().then(function(){
+    var msg = document.getElementById('verificacaoMsg');
+    msg.textContent = 'Email reenviado!';
+    msg.style.display = 'block';
+  });
+});
+document.getElementById('linkSairVerificacao').addEventListener('click', function(e){
+  e.preventDefault();
+  firebase.auth().signOut();
 });
 
 function pararApp(){
@@ -356,9 +416,12 @@ function carregarWorkspaceEIniciar(user){
       definirReferenciasEIniciar();
     } else {
       currentWorkspaceId = user.uid;
-      db.collection('usuarios').doc(user.uid).set({workspaceId: currentWorkspaceId}).then(function(){
-        definirReferenciasEIniciar();
-      });
+      db.collection('workspaces').doc(currentWorkspaceId).set({ownerEmail: user.email, criadoEm: new Date().toISOString()})
+        .then(function(){
+          return db.collection('usuarios').doc(user.uid).set({workspaceId: currentWorkspaceId});
+        }).then(function(){
+          definirReferenciasEIniciar();
+        });
     }
   });
 }
@@ -396,8 +459,16 @@ document.getElementById('btnEntrar').addEventListener('click', function(){
     var codigoConvite = document.getElementById('loginConvite').value.trim();
     firebase.auth().createUserWithEmailAndPassword(email, senha).then(function(cred){
       var novoUid = cred.user.uid;
-      var workspaceEscolhido = codigoConvite ? codigoConvite : novoUid;
-      return db.collection('usuarios').doc(novoUid).set({workspaceId: workspaceEscolhido});
+      cred.user.sendEmailVerification();
+      if(codigoConvite){
+        notificarDonoWorkspace(codigoConvite, email);
+        return db.collection('usuarios').doc(novoUid).set({workspaceId: codigoConvite});
+      } else {
+        return db.collection('workspaces').doc(novoUid).set({ownerEmail: email, criadoEm: new Date().toISOString()})
+          .then(function(){
+            return db.collection('usuarios').doc(novoUid).set({workspaceId: novoUid});
+          });
+      }
     }).catch(function(err){
       erroEl.textContent = err.message;
       erroEl.style.display = 'block';
