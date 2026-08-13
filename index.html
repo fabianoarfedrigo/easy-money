@@ -58,6 +58,7 @@ form button[type=submit]{background:var(--gradiente);color:white;padding:10px 24
 table{width:100%;border-collapse:collapse;min-width:600px;}
 th, td{padding:12px;text-align:left;border-bottom:1px solid #eee;font-size:0.9em;}
 th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
+tbody tr:hover{background:#fafbfc;}
 .linha-Receita{border-left:4px solid var(--cor-entrada);}
 .linha-DespesaVariavel{border-left:4px solid var(--cor-variavel);}
 .linha-DespesaFixa{border-left:4px solid var(--cor-fixa);}
@@ -76,8 +77,8 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 .tipo-btn.despesa-btn.active{background:var(--cor-variavel);color:white;}
 .tipo-btn.receita-btn.active{background:var(--cor-entrada);color:white;}
 .tipo-btn.transferencia-btn.active{background:var(--cor-transferencia);color:white;}
-#formMovimento, #formTransferencia{flex-direction:column;box-shadow:none;padding:0;}
-#formMovimento label, #formTransferencia label{font-size:0.85em;color:var(--cinza);font-weight:600;margin-bottom:-4px;}
+#formMovimento, #formTransferencia, #formContaModal{flex-direction:column;box-shadow:none;padding:0;}
+#formMovimento label, #formTransferencia label, #formContaModal label{font-size:0.85em;color:var(--cinza);font-weight:600;margin-bottom:-4px;}
 .subtipo-selector{display:flex;gap:8px;flex-wrap:wrap;}
 .subtipo-btn{flex:1;padding:10px;border-radius:10px;background:#f0f1f3;color:var(--texto);}
 .subtipo-btn.active{background:var(--azul);color:white;}
@@ -107,18 +108,21 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
 .lock-box h2{margin-top:0;color:var(--azul);}
 .campo-login{font-size:1em;text-align:left;width:260px;padding:12px;margin-bottom:12px;display:block;}
 .lock-box button{padding:12px 28px;background:var(--gradiente);color:white;font-size:1em;font-weight:600;margin-top:6px;}
-#loginErro{color:var(--cor-variavel);font-weight:bold;display:none;margin-top:10px;}
+#loginErro{color:var(--cor-variavel);font-weight:bold;display:none;margin-top:10px;font-size:0.85em;}
+.link-alternar{margin-top:14px;font-size:0.85em;color:var(--cinza);}
+.link-alternar a{color:var(--azul);font-weight:600;text-decoration:none;cursor:pointer;}
 </style>
 </head>
 <body>
 <div id="lockScreen" class="lock-screen">
   <div class="lock-box">
     <img src="icon.png" alt="Easy Money">
-    <h2>Entrar</h2>
+    <h2 id="tituloLogin">Entrar</h2>
     <input type="email" id="loginEmail" class="campo-login" placeholder="Email" required>
     <input type="password" id="loginSenha" class="campo-login" placeholder="Senha" required>
     <button id="btnEntrar">Entrar</button>
-    <p id="loginErro">Email ou senha incorretos.</p>
+    <p id="loginErro"></p>
+    <p class="link-alternar"><span id="textoAlternar">Não tem conta?</span> <a href="#" id="linkAlternar">Criar conta</a></p>
   </div>
 </div>
 <div id="appContent" style="display:none;">
@@ -145,22 +149,14 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
   <section id="contas" class="tab-content">
     <div class="config-list-header">
       <h2>Contas</h2>
-      <div><button id="btnEditarContasTab" class="btn-secundario">Editar</button><button id="btnAddContaTab" class="btn-icon-add">+</button></div>
+      <div><button id="btnAddContaTab" class="btn-icon-add">+</button></div>
     </div>
-    <form id="formContaTab" style="display:none;">
-      <input type="hidden" id="contaTabId">
-      <input type="text" id="contaTabNome" placeholder="Descrição" required>
-      <select id="contaTabTipo"><option>Conta Corrente</option><option>Poupança</option><option>Investimento</option></select>
-      <input type="number" id="contaTabSaldo" placeholder="Saldo inicial" step="0.01" required>
-      <button type="submit" id="btnSalvarContaTab">Adicionar</button>
-    </form>
-    <div class="table-wrapper" id="wrapperTabelaContas">
+    <div class="table-wrapper">
       <table id="tabelaContas">
         <thead><tr><th>Descrição</th><th>Tipo</th><th>Saldo Atual</th><th>Saldo Previsto</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
-    <div class="config-list" id="listaContasEdicao" style="display:none;"></div>
   </section>
   <section id="transacoes" class="tab-content">
     <h2>Transações</h2>
@@ -190,10 +186,11 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
   </section>
 </main>
 <button class="fab" id="btnAdicionar">+</button>
+
 <div id="modalAdd" class="modal-overlay" style="display:none;">
   <div class="modal-box">
-    <div class="modal-header"><h3>Nova Transação</h3><button class="modal-close" id="btnCloseAdd">&times;</button></div>
-    <div class="tipo-selector">
+    <div class="modal-header"><h3 id="tituloModalAdd">Nova Transação</h3><button class="modal-close" id="btnCloseAdd">&times;</button></div>
+    <div class="tipo-selector" id="tipoSelectorWrap">
       <button type="button" class="tipo-btn despesa-btn" data-tipo="Despesa">Despesa</button>
       <button type="button" class="tipo-btn receita-btn" data-tipo="Receita">Receita</button>
       <button type="button" class="tipo-btn transferencia-btn" data-tipo="Transferencia">Transferência</button>
@@ -244,8 +241,27 @@ th{background:#f8f9fb;color:var(--cinza);font-weight:600;}
       <input type="text" id="transfDescricao" required>
       <button type="submit">Salvar Transferência</button>
     </form>
+    <button type="button" id="btnExcluirMov" class="btn-excluir-item" style="display:none;width:100%;margin-top:8px;">Excluir Transação</button>
   </div>
 </div>
+
+<div id="modalConta" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header"><h3 id="tituloModalConta">Nova Conta</h3><button class="modal-close" id="btnCloseModalConta">&times;</button></div>
+    <form id="formContaModal">
+      <input type="hidden" id="contaModalId">
+      <label>Descrição</label>
+      <input type="text" id="contaModalNome" required>
+      <label>Tipo</label>
+      <select id="contaModalTipo"><option>Conta Corrente</option><option>Poupança</option><option>Investimento</option></select>
+      <label>Saldo Inicial</label>
+      <input type="number" id="contaModalSaldo" step="0.01" required>
+      <button type="submit" id="btnSalvarContaModal">Adicionar</button>
+    </form>
+    <button type="button" id="btnExcluirContaModal" class="btn-excluir-item" style="display:none;width:100%;margin-top:8px;">Excluir Conta</button>
+  </div>
+</div>
+
 <div id="modalConfig" class="modal-overlay" style="display:none;">
   <div class="modal-box modal-box-lg">
     <div class="modal-header"><h3>Configurações</h3><button class="modal-close" id="btnCloseConfig">&times;</button></div>
@@ -295,26 +311,49 @@ var db = firebase.firestore();
 var appIniciado = false;
 firebase.auth().onAuthStateChanged(function(user){
   if(user){
-    var lock = document.getElementById('lockScreen');
-    if(lock && lock.parentNode) lock.parentNode.removeChild(lock);
+    document.getElementById('lockScreen').style.display = 'none';
     document.getElementById('appContent').style.display = 'block';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginSenha').value = '';
     if(!appIniciado){
       appIniciado = true;
       iniciarApp();
     }
   } else {
+    document.getElementById('lockScreen').style.display = 'flex';
     document.getElementById('appContent').style.display = 'none';
   }
+});
+
+var modoCadastro = false;
+document.getElementById('linkAlternar').addEventListener('click', function(e){
+  e.preventDefault();
+  modoCadastro = !modoCadastro;
+  document.getElementById('tituloLogin').textContent = modoCadastro ? 'Criar Conta' : 'Entrar';
+  document.getElementById('btnEntrar').textContent = modoCadastro ? 'Criar Conta' : 'Entrar';
+  document.getElementById('textoAlternar').textContent = modoCadastro ? 'Já tem conta?' : 'Não tem conta?';
+  document.getElementById('linkAlternar').textContent = modoCadastro ? 'Entrar' : 'Criar conta';
+  document.getElementById('loginErro').style.display = 'none';
 });
 document.getElementById('btnEntrar').addEventListener('click', function(){
   var email = document.getElementById('loginEmail').value;
   var senha = document.getElementById('loginSenha').value;
-  document.getElementById('loginErro').style.display = 'none';
-  firebase.auth().signInWithEmailAndPassword(email, senha).catch(function(){
-    document.getElementById('loginErro').style.display = 'block';
-  });
+  var erroEl = document.getElementById('loginErro');
+  erroEl.style.display = 'none';
+  if(modoCadastro){
+    firebase.auth().createUserWithEmailAndPassword(email, senha).catch(function(err){
+      erroEl.textContent = err.message;
+      erroEl.style.display = 'block';
+    });
+  } else {
+    firebase.auth().signInWithEmailAndPassword(email, senha).catch(function(){
+      erroEl.textContent = 'Email ou senha incorretos.';
+      erroEl.style.display = 'block';
+    });
+  }
 });
 document.getElementById('btnSair').addEventListener('click', function(){ firebase.auth().signOut(); });
+
 var contasRef = db.collection('contas');
 var lancamentosRef = db.collection('lancamentos');
 var transferenciasRef = db.collection('transferencias');
@@ -325,7 +364,7 @@ var configCoresRef = db.collection('config').doc('cores');
 var contas = [], lancamentos = [], transferencias = [], categorias = [], recorrencias = [];
 var perfilAtual = 'Pessoal';
 var dashboardConfig = {};
-var modoEdicaoContasTab = false, modoEdicaoCategorias = false;
+var modoEdicaoCategorias = false;
 var WIDGETS_DISPONIVEIS = [
   {key:'saldoAtual', label:'Saldo Atual', tipo:'card'},
   {key:'saldoPrevisto', label:'Saldo Previsto (fim do mes)', tipo:'card'},
@@ -367,7 +406,7 @@ categoriasRef.get().then(function(snap){
 });
 contasRef.onSnapshot(function(snap){
   contas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-  renderContas(); renderContasEdicao(); renderDashboard(); popularFiltroConta();
+  renderContas(); renderDashboard(); popularFiltroConta();
 });
 lancamentosRef.onSnapshot(function(snap){
   lancamentos = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
@@ -577,72 +616,62 @@ function tornarArrastavel(container, onDrop){
     });
   });
 }
+
 function renderContas(){
   var tbody = document.querySelector('#tabelaContas tbody');
   if(!tbody) return;
   tbody.innerHTML = '';
   contas.filter(contaEhVisivel).forEach(function(c){
     var tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
     tr.innerHTML = '<td>'+c.descricao+'</td><td>'+c.tipo+'</td>'+
       '<td>'+formatMoeda(saldoAtualConta(c.id))+'</td><td>'+formatMoeda(saldoPrevistoConta(c.id))+'</td>';
+    tr.addEventListener('click', function(){ abrirModalConta(c); });
     tbody.appendChild(tr);
   });
 }
-function excluirConta(e, id){ e.stopPropagation(); if(confirm('Excluir esta conta?')) contasRef.doc(id).delete(); }
-function editarContaTab(c){
-  document.getElementById('contaTabId').value = c.id;
-  document.getElementById('contaTabNome').value = c.descricao;
-  document.getElementById('contaTabTipo').value = c.tipo;
-  document.getElementById('contaTabSaldo').value = c.saldoInicial;
-  document.getElementById('btnSalvarContaTab').textContent = 'Salvar Edição';
-  document.getElementById('formContaTab').style.display = 'flex';
+function abrirModalConta(conta){
+  document.getElementById('formContaModal').reset();
+  if(conta){
+    document.getElementById('tituloModalConta').textContent = 'Editar Conta';
+    document.getElementById('contaModalId').value = conta.id;
+    document.getElementById('contaModalNome').value = conta.descricao;
+    document.getElementById('contaModalTipo').value = conta.tipo;
+    document.getElementById('contaModalSaldo').value = conta.saldoInicial;
+    document.getElementById('btnSalvarContaModal').textContent = 'Salvar';
+    document.getElementById('btnExcluirContaModal').style.display = 'block';
+  } else {
+    document.getElementById('tituloModalConta').textContent = 'Nova Conta';
+    document.getElementById('contaModalId').value = '';
+    document.getElementById('btnSalvarContaModal').textContent = 'Adicionar';
+    document.getElementById('btnExcluirContaModal').style.display = 'none';
+  }
+  document.getElementById('modalConta').style.display = 'flex';
 }
-function renderContasEdicao(){
-  var container = document.getElementById('listaContasEdicao');
-  if(!container) return;
-  container.innerHTML = '';
-  var lista = contas.filter(contaEhVisivel).sort(function(a,b){ return (a.ordem||0)-(b.ordem||0); });
-  lista.forEach(function(c){
-    var row = document.createElement('div');
-    row.className = 'config-list-item';
-    row.setAttribute('data-id', c.id);
-    row.setAttribute('draggable','true');
-    row.innerHTML = '<span class="item-info"><span class="drag-handle">::</span>'+c.descricao+' - '+c.tipo+'</span>'+
-      '<button class="btn-excluir-item" onclick="excluirConta(event,\''+c.id+'\')">Excluir</button>';
-    row.querySelector('.item-info').addEventListener('click', function(){ editarContaTab(c); });
-    container.appendChild(row);
-  });
-  tornarArrastavel(container, function(){
-    var rows = container.querySelectorAll('[data-id]');
-    rows.forEach(function(row, idx){ contasRef.doc(row.getAttribute('data-id')).update({ordem: idx}); });
-  });
-}
-document.getElementById('btnEditarContasTab').addEventListener('click', function(){
-  modoEdicaoContasTab = !modoEdicaoContasTab;
-  this.textContent = modoEdicaoContasTab ? 'Concluir' : 'Editar';
-  document.getElementById('wrapperTabelaContas').style.display = modoEdicaoContasTab ? 'none' : 'block';
-  document.getElementById('listaContasEdicao').style.display = modoEdicaoContasTab ? 'block' : 'none';
-});
-document.getElementById('btnAddContaTab').addEventListener('click', function(){
-  document.getElementById('contaTabId').value = '';
-  document.getElementById('formContaTab').reset();
-  document.getElementById('btnSalvarContaTab').textContent = 'Adicionar';
-  document.getElementById('formContaTab').style.display = 'flex';
-});
-document.getElementById('formContaTab').addEventListener('submit', function(e){
+function fecharModalConta(){ document.getElementById('modalConta').style.display = 'none'; }
+document.getElementById('btnAddContaTab').addEventListener('click', function(){ abrirModalConta(null); });
+document.getElementById('btnCloseModalConta').addEventListener('click', fecharModalConta);
+document.getElementById('formContaModal').addEventListener('submit', function(e){
   e.preventDefault();
-  var id = document.getElementById('contaTabId').value;
+  var id = document.getElementById('contaModalId').value;
   var dados = {
-    descricao: document.getElementById('contaTabNome').value,
-    tipo: document.getElementById('contaTabTipo').value,
+    descricao: document.getElementById('contaModalNome').value,
+    tipo: document.getElementById('contaModalTipo').value,
     perfil: perfilAtual,
-    saldoInicial: parseFloat(document.getElementById('contaTabSaldo').value)
+    saldoInicial: parseFloat(document.getElementById('contaModalSaldo').value)
   };
   if(id){ contasRef.doc(id).update(dados); }
   else { dados.ordem = contas.length; contasRef.add(dados); }
-  document.getElementById('formContaTab').style.display = 'none';
-  document.getElementById('formContaTab').reset();
+  fecharModalConta();
 });
+document.getElementById('btnExcluirContaModal').addEventListener('click', function(){
+  var id = document.getElementById('contaModalId').value;
+  if(confirm('Excluir esta conta?')){
+    contasRef.doc(id).delete();
+    fecharModalConta();
+  }
+});
+
 function excluirCategoria(e, id){ e.stopPropagation(); if(confirm('Excluir esta categoria?')) categoriasRef.doc(id).delete(); }
 function editarCategoria(c){
   document.getElementById('cfgCategoriaId').value = c.id;
@@ -773,6 +802,7 @@ function togglePago(id){
   lancamentosRef.doc(id).update({status: l.status === 'Pago' ? 'Programado' : 'Pago'});
 }
 function excluirTransferencia(id){ if(confirm('Excluir esta transferencia?')) transferenciasRef.doc(id).delete(); }
+
 function renderTransacoes(){
   var periodoEl = document.getElementById('filtroPeriodo');
   if(!periodoEl) return;
@@ -806,15 +836,21 @@ function renderTransacoes(){
       nomeConta = nomeConta + ' -> ' + (destino?destino.descricao:'-');
     }
     var checkboxHtml = l.origem === 'lancamento'
-      ? '<input type="checkbox" '+(l.status==='Pago'?'checked':'')+' onchange="togglePago(\''+l.id+'\')">'
+      ? '<input type="checkbox" '+(l.status==='Pago'?'checked':'')+' onclick="event.stopPropagation();" onchange="togglePago(\''+l.id+'\')">'
       : '-';
-    var acaoBtn = l.origem === 'lancamento'
-      ? '<button onclick="editarLancamento(\''+l.id+'\')">Editar</button>'
-      : '<button onclick="excluirTransferencia(\''+l.id+'\')">Excluir</button>';
+    var acaoHtml = l.origem === 'transferencia'
+      ? '<button onclick="event.stopPropagation();excluirTransferencia(\''+l.id+'\')">Excluir</button>'
+      : '';
     var tr = document.createElement('tr');
     tr.className = 'linha-'+l.tipoLinha;
+    if(l.origem === 'lancamento'){
+      tr.style.cursor = 'pointer';
+      (function(idCapturado){
+        tr.addEventListener('click', function(){ editarLancamento(idCapturado); });
+      })(l.id);
+    }
     tr.innerHTML = '<td>'+l.data+'</td><td>'+nomeConta+'</td><td>'+l.categoria+'</td>'+
-      '<td>'+l.descricao+'</td><td>'+l.status+'</td><td>'+checkboxHtml+'</td><td>'+acaoBtn+'</td>';
+      '<td>'+l.descricao+'</td><td>'+l.status+'</td><td>'+checkboxHtml+'</td><td>'+acaoHtml+'</td>';
     tbody.appendChild(tr);
   });
 }
@@ -855,15 +891,24 @@ document.getElementById('btnAtualizarRecorrencias').addEventListener('click', fu
   gerarOcorrenciasPendentes();
   alert('Recorrencias verificadas!');
 });
+
 function editarLancamento(id){
   var l = lancamentos.find(function(x){ return x.id === id; });
   if(!l) return;
   abrirModalAdd();
+  document.getElementById('tituloModalAdd').textContent = 'Editar Transação';
+  document.getElementById('tipoSelectorWrap').style.display = 'none';
   var tipoBtn = document.querySelector('.tipo-btn[data-tipo="'+l.tipoMov+'"]');
   if(tipoBtn) tipoBtn.click();
   document.getElementById('movEditId').value = l.id;
   var subBtn = document.querySelector('.subtipo-btn[data-subtipo="'+l.subtipo+'"]');
   if(subBtn) subBtn.click();
+  if(l.subtipo === 'Fixa' && l.frequencia){
+    var freqBtn = document.querySelector('.freq-btn[data-freq="'+l.frequencia+'"]');
+    if(freqBtn) freqBtn.click();
+    if(l.diaSemana !== undefined && l.diaSemana !== null) document.getElementById('movDiaSemana').value = l.diaSemana;
+    if(l.diaMes !== undefined && l.diaMes !== null) document.getElementById('movDiaMes').value = l.diaMes;
+  }
   document.getElementById('movData').value = l.data;
   document.getElementById('movConta').value = l.contaId;
   document.getElementById('movCategoria').value = l.categoria;
@@ -871,12 +916,25 @@ function editarLancamento(id){
   document.getElementById('movValor').value = l.valor;
   document.getElementById('movStatus').value = l.status;
   document.getElementById('btnSalvarMov').textContent = 'Salvar Edição';
+  document.getElementById('btnExcluirMov').style.display = 'block';
+  document.getElementById('btnExcluirMov').setAttribute('data-id', l.id);
 }
+document.getElementById('btnExcluirMov').addEventListener('click', function(){
+  var id = this.getAttribute('data-id');
+  if(confirm('Excluir esta transacao?')){
+    lancamentosRef.doc(id).delete();
+    fecharModalAdd();
+  }
+});
+
 function abrirModalAdd(){
   document.getElementById('modalAdd').style.display = 'flex';
   document.getElementById('formMovimento').style.display = 'none';
   document.getElementById('formTransferencia').style.display = 'none';
   document.getElementById('movEditId').value = '';
+  document.getElementById('tituloModalAdd').textContent = 'Nova Transação';
+  document.getElementById('tipoSelectorWrap').style.display = 'flex';
+  document.getElementById('btnExcluirMov').style.display = 'none';
   document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('active'); });
   popularTransferSelects();
 }
@@ -999,7 +1057,7 @@ document.querySelectorAll('.toggle-btn').forEach(function(btn){
     document.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
     perfilAtual = btn.getAttribute('data-perfil');
-    renderContas(); renderContasEdicao(); renderTransacoes(); renderDashboard(); popularFiltroConta();
+    renderContas(); renderTransacoes(); renderDashboard(); popularFiltroConta();
   });
 });
 </script>
