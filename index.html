@@ -229,7 +229,6 @@ tbody tr:hover{background:#fafbfc;}
   </section>
   <section id="transacoes" class="tab-content">
     <h2>Transações</h2>
-    <button id="btnAtualizarRecorrencias">Atualizar Recorrências</button><br><br>
     <div class="filtros-transacoes">
       <select id="filtroTipo">
         <option value="todos">Todos os tipos</option>
@@ -653,6 +652,7 @@ document.getElementById('btnMesProximo').addEventListener('click', function(){
 function atualizarMes(){
   atualizarLabelMes();
   gerarOcorrenciasParaMes(mesSelecionado.getFullYear(), mesSelecionado.getMonth());
+  gerarOcorrenciasParaMes(mesSelecionado.getFullYear(), mesSelecionado.getMonth()+1);
   renderDashboard();
   renderTransacoes();
   renderContas();
@@ -694,6 +694,7 @@ unsubscribers.push(contasRef.onSnapshot(function(snap){
 unsubscribers.push(lancamentosRef.onSnapshot(function(snap){
   lancamentos = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderTransacoes(); renderDashboard(); renderDividas(); atualizarRelatorios();
+  garantirParcelasDividas();
 }));
 unsubscribers.push(transferenciasRef.onSnapshot(function(snap){
   transferencias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
@@ -705,10 +706,12 @@ unsubscribers.push(categoriasRef.onSnapshot(function(snap){
 }));
 unsubscribers.push(recorrenciasRef.onSnapshot(function(snap){
   recorrencias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  garantirOcorrenciasFuturas();
 }));
 unsubscribers.push(dividasRef.onSnapshot(function(snap){
   dividas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
   renderDividas();
+  garantirParcelasDividas();
 }));
 unsubscribers.push(configDashRef.onSnapshot(function(doc){
   dashboardConfig = doc.exists ? doc.data() : {ordem: ordemPadraoWidgets()};
@@ -732,7 +735,8 @@ unsubscribers.push(configCoresRef.onSnapshot(function(doc){
 }));
 
 setTimeout(function(){
-  gerarOcorrenciasParaMes(mesSelecionado.getFullYear(), mesSelecionado.getMonth());
+  garantirOcorrenciasFuturas();
+  garantirParcelasDividas();
 }, 3000);
 
 }
@@ -1161,10 +1165,12 @@ function gerarOcorrenciasParaMes(ano, mes){
     }
   });
 }
-document.getElementById('btnAtualizarRecorrencias').addEventListener('click', function(){
-  gerarOcorrenciasParaMes(mesSelecionado.getFullYear(), mesSelecionado.getMonth());
-  alert('Recorrencias verificadas para este mes!');
-});
+function garantirOcorrenciasFuturas(){
+  var hoje = new Date();
+  var proximo = new Date(hoje.getFullYear(), hoje.getMonth()+1, 1);
+  gerarOcorrenciasParaMes(hoje.getFullYear(), hoje.getMonth());
+  gerarOcorrenciasParaMes(proximo.getFullYear(), proximo.getMonth());
+}
 
 function editarLancamento(id){
   var l = lancamentos.find(function(x){ return x.id === id; });
@@ -1283,9 +1289,8 @@ document.getElementById('formMovimento').addEventListener('submit', function(e){
   } else if(subtipo === 'Fixa' && frequencia !== 'Uma vez'){
     var recDados = Object.assign({}, dados, {dataInicio: dados.data, ativo:true});
     delete recDados.status;
-    recorrenciasRef.add(recDados).then(function(docRef){
-      dados.recorrenciaId = docRef.id;
-      lancamentosRef.add(dados);
+    recorrenciasRef.add(recDados).then(function(){
+      garantirOcorrenciasFuturas();
     });
   } else {
     lancamentosRef.add(dados);
@@ -1341,7 +1346,8 @@ document.querySelectorAll('.toggle-btn').forEach(function(btn){
     document.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
     perfilAtual = btn.getAttribute('data-perfil');
-    gerarOcorrenciasParaMes(mesSelecionado.getFullYear(), mesSelecionado.getMonth());
+    garantirOcorrenciasFuturas();
+    garantirParcelasDividas();
     renderContas(); renderTransacoes(); renderDashboard(); popularFiltroConta(); renderDividas(); popularFiltrosRelatorio(); atualizarRelatorios();
   });
 });
@@ -1450,8 +1456,8 @@ document.getElementById('formDividaModal').addEventListener('submit', function(e
   if(id){
     dividasRef.doc(id).update(dados);
   } else {
-    dividasRef.add(dados).then(function(docRef){
-      gerarTodasParcelasDivida(Object.assign({id:docRef.id}, dados));
+    dividasRef.add(dados).then(function(){
+      garantirParcelasDividas();
     });
   }
   fecharModalDivida();
@@ -1463,17 +1469,24 @@ document.getElementById('btnExcluirDividaModal').addEventListener('click', funct
     fecharModalDivida();
   }
 });
-function gerarTodasParcelasDivida(dv){
-  var dataBase = new Date(dv.dataInicio+'T00:00:00');
-  for(var i=0;i<dv.quantidadeParcelas;i++){
-    var dataParcela = new Date(dataBase.getFullYear(), dataBase.getMonth()+i, dv.diaVencimento);
-    var dataStr = formatarData(dataParcela);
-    lancamentosRef.add({
-      data: dataStr, perfil: dv.perfil, contaId: dv.contaId, categoria: 'Dívidas',
-      descricao: dv.descricao+' (parcela '+(i+1)+'/'+dv.quantidadeParcelas+')',
-      tipoMov: 'Despesa', subtipo: 'Fixa', valor: dv.valorParcela, status: 'Programado', dividaId: dv.id
-    });
-  }
+function garantirParcelasDividas(){
+  dividas.filter(function(dv){ return dv.ativa !== false; }).forEach(function(dv){
+    var parcelasExistentes = lancamentos.filter(function(l){ return l.dividaId === dv.id; });
+    if(parcelasExistentes.length >= dv.quantidadeParcelas) return;
+    var dataBase = new Date(dv.dataInicio+'T00:00:00');
+    for(var i=0;i<dv.quantidadeParcelas;i++){
+      var dataParcela = new Date(dataBase.getFullYear(), dataBase.getMonth()+i, dv.diaVencimento);
+      var dataStr = formatarData(dataParcela);
+      var jaExiste = parcelasExistentes.some(function(l){ return l.data === dataStr; });
+      if(!jaExiste){
+        lancamentosRef.add({
+          data: dataStr, perfil: dv.perfil, contaId: dv.contaId, categoria: 'Dívidas',
+          descricao: dv.descricao+' (parcela '+(i+1)+'/'+dv.quantidadeParcelas+')',
+          tipoMov: 'Despesa', subtipo: 'Fixa', valor: dv.valorParcela, status: 'Programado', dividaId: dv.id
+        });
+      }
+    }
+  });
 }
 
 function definirDatasPadraoRelatorio(){
