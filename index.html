@@ -34,6 +34,7 @@ input:focus, select:focus{outline:none;border-color:var(--verde);box-shadow:0 0 
 header{position:relative;background:var(--gradiente);color:white;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);flex-wrap:wrap;}
 .brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 18px;}
 .brand-logo{height:64px;display:block;}
+.brand-logo-mobile{display:none;}
 .toggle-perfil{display:flex;background:rgba(255,255,255,0.2);border-radius:999px;padding:4px;z-index:2;}
 .toggle-btn{background:transparent;color:white;padding:8px 20px;border-radius:999px;font-weight:600;}
 .toggle-btn.active{background:white;color:var(--azul);}
@@ -78,8 +79,8 @@ tbody tr:hover{background:#fafbfc;}
 .tipo-btn.despesa-btn.active{background:var(--cor-variavel);color:white;}
 .tipo-btn.receita-btn.active{background:var(--cor-entrada);color:white;}
 .tipo-btn.transferencia-btn.active{background:var(--cor-transferencia);color:white;}
-#formMovimento, #formTransferencia, #formContaModal{flex-direction:column;box-shadow:none;padding:0;}
-#formMovimento label, #formTransferencia label, #formContaModal label{font-size:0.85em;color:var(--cinza);font-weight:600;margin-bottom:-4px;}
+#formMovimento, #formTransferencia, #formContaModal, #formDividaModal{flex-direction:column;box-shadow:none;padding:0;}
+#formMovimento label, #formTransferencia label, #formContaModal label, #formDividaModal label{font-size:0.85em;color:var(--cinza);font-weight:600;margin-bottom:-4px;}
 .subtipo-selector{display:flex;gap:8px;flex-wrap:wrap;}
 .subtipo-btn{flex:1;padding:10px;border-radius:10px;background:#f0f1f3;color:var(--texto);}
 .subtipo-btn.active{background:var(--azul);color:white;}
@@ -113,6 +114,40 @@ tbody tr:hover{background:#fafbfc;}
 #loginErro{color:var(--cor-variavel);font-weight:bold;display:none;margin-top:10px;font-size:0.85em;}
 .link-alternar{margin-top:14px;font-size:0.85em;color:var(--cinza);}
 .link-alternar a{color:var(--azul);font-weight:600;text-decoration:none;cursor:pointer;}
+
+@media (max-width: 700px){
+  header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:10px 12px;gap:6px;}
+  .brand{order:1;position:static;transform:none;padding:0;justify-self:start;}
+  .brand-logo{display:none;}
+  .brand-logo-mobile{display:block;height:32px;}
+  .toggle-perfil{order:2;justify-self:center;}
+  .header-actions{order:3;justify-self:end;gap:4px;}
+  .icon-btn{padding:6px 10px;font-size:0.8em;}
+  .toggle-btn{padding:6px 12px;font-size:0.85em;}
+  nav#tabs{padding:8px 10px;}
+  .tab-btn{padding:8px 14px;font-size:0.88em;}
+  main{padding:12px;}
+  .card, .chart-box, .pendentes-box{min-width:100%;}
+  .modal-box{padding:18px;}
+  .fab{width:52px;height:52px;font-size:28px;bottom:16px;right:16px;}
+  form{padding:14px;}
+  .filtros-transacoes{flex-direction:column;}
+  .filtros-transacoes select{width:100%;}
+  .table-wrapper table, .table-wrapper thead, .table-wrapper tbody, .table-wrapper th, .table-wrapper td, .table-wrapper tr{
+    display:block;
+  }
+  .table-wrapper{overflow-x:visible;background:transparent;box-shadow:none;}
+  .table-wrapper thead{display:none;}
+  .table-wrapper tr{
+    background:white;border-radius:12px;margin-bottom:10px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  .table-wrapper td{
+    border:none;padding:6px 0;display:flex;justify-content:space-between;align-items:center;font-size:0.9em;text-align:right;
+  }
+  .table-wrapper td::before{
+    content:attr(data-label);font-weight:600;color:var(--cinza);margin-right:10px;text-align:left;
+  }
+}
 </style>
 </head>
 <body>
@@ -147,7 +182,10 @@ tbody tr:hover{background:#fafbfc;}
     <button class="toggle-btn active" data-perfil="Pessoal">Pessoal</button>
     <button class="toggle-btn" data-perfil="Empresa">Empresa</button>
   </div>
-  <div class="brand"><img src="logo.png" alt="Easy Money" class="brand-logo"></div>
+  <div class="brand">
+    <img src="logo.png" alt="Easy Money" class="brand-logo">
+    <img src="icon.png" alt="Easy Money" class="brand-logo-mobile">
+  </div>
   <div class="header-actions">
     <button class="icon-btn" id="btnConfig">Config</button>
     <button class="icon-btn" id="btnSair">Sair</button>
@@ -157,6 +195,7 @@ tbody tr:hover{background:#fafbfc;}
   <button data-tab="dashboard" class="tab-btn active">Dashboard</button>
   <button data-tab="contas" class="tab-btn">Contas</button>
   <button data-tab="transacoes" class="tab-btn">Transações</button>
+  <button data-tab="dividas" class="tab-btn">Dívidas</button>
 </nav>
 <main>
   <section id="dashboard" class="tab-content active">
@@ -196,6 +235,23 @@ tbody tr:hover{background:#fafbfc;}
     <div class="table-wrapper">
       <table id="tabelaTransacoes">
         <thead><tr><th>Data</th><th>Conta</th><th>Categoria</th><th>Descrição</th><th>Situação</th><th>Pago</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+  <section id="dividas" class="tab-content">
+    <div class="config-list-header">
+      <h2>Dívidas</h2>
+      <div><button id="btnAddDivida" class="btn-icon-add">+</button></div>
+    </div>
+    <div class="dashboard-flex" style="margin-bottom:16px;">
+      <div class="card"><h3>Total em Dívidas</h3><p id="resumoDividaTotal">R$ 0,00</p></div>
+      <div class="card"><h3>Meses para Quitar Tudo</h3><p id="resumoDividaMeses">0</p></div>
+      <div class="card"><h3>Pago em Dívidas por Mês</h3><p id="resumoDividaMensal">R$ 0,00</p></div>
+    </div>
+    <div class="table-wrapper">
+      <table id="tabelaDividas">
+        <thead><tr><th>Descrição</th><th>Valor Restante</th><th>Parcelas</th><th>Parcela Mensal</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -278,6 +334,35 @@ tbody tr:hover{background:#fafbfc;}
   </div>
 </div>
 
+<div id="modalDivida" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header"><h3 id="tituloModalDivida">Nova Dívida</h3><button class="modal-close" id="btnCloseModalDivida">&times;</button></div>
+    <form id="formDividaModal">
+      <input type="hidden" id="dividaModalId">
+      <label>Descrição</label>
+      <input type="text" id="dividaDescricao" required>
+      <label>Valor Total (financiado)</label>
+      <input type="number" id="dividaValorTotal" step="0.01" required>
+      <label>Valor da Parcela</label>
+      <input type="number" id="dividaValorParcela" step="0.01" required>
+      <label>Data de Vencimento da Parcela</label>
+      <input type="date" id="dividaDataVencimento" required>
+      <label>Conta (usada para pagar)</label>
+      <select id="dividaConta" required></select>
+      <label>Quantidade de Parcelas</label>
+      <input type="number" id="dividaQtdParcelas" min="1" required>
+      <button type="submit" id="btnSalvarDivida">Adicionar</button>
+    </form>
+    <div id="resumoComparacaoDivida" style="background:var(--bg);border-radius:12px;padding:14px;margin-top:12px;font-size:0.9em;display:none;">
+      <p><strong>Total financiado:</strong> <span id="cmpValorTotal">-</span></p>
+      <p><strong>Total a pagar (parcelas):</strong> <span id="cmpTotalParcelas">-</span></p>
+      <p><strong>Juros pagos:</strong> <span id="cmpJuros">-</span></p>
+      <p><strong>Parcelas pagas:</strong> <span id="cmpParcelasPagas">-</span></p>
+    </div>
+    <button type="button" id="btnExcluirDividaModal" class="btn-excluir-item" style="display:none;width:100%;margin-top:8px;">Excluir Dívida</button>
+  </div>
+</div>
+
 <div id="modalConfig" class="modal-overlay" style="display:none;">
   <div class="modal-box modal-box-lg">
     <div class="modal-header"><h3>Configurações</h3><button class="modal-close" id="btnCloseConfig">&times;</button></div>
@@ -349,7 +434,7 @@ function notificarDonoWorkspace(workspaceId, novoEmail){
   });
 }
 
-var contasRef, lancamentosRef, transferenciasRef, categoriasRef, recorrenciasRef, configDashRef, configCoresRef;
+var contasRef, lancamentosRef, transferenciasRef, categoriasRef, recorrenciasRef, dividasRef, configDashRef, configCoresRef;
 var currentWorkspaceId = null;
 var appIniciado = false;
 var unsubscribers = [];
@@ -404,7 +489,7 @@ document.getElementById('linkSairVerificacao').addEventListener('click', functio
 function pararApp(){
   unsubscribers.forEach(function(u){ u(); });
   unsubscribers = [];
-  contas = []; lancamentos = []; transferencias = []; categorias = []; recorrencias = [];
+  contas = []; lancamentos = []; transferencias = []; categorias = []; recorrencias = []; dividas = [];
   appIniciado = false;
   currentWorkspaceId = null;
 }
@@ -432,6 +517,7 @@ function definirReferenciasEIniciar(){
   transferenciasRef = wsRef.collection('transferencias');
   categoriasRef = wsRef.collection('categorias');
   recorrenciasRef = wsRef.collection('recorrencias');
+  dividasRef = wsRef.collection('dividas');
   configDashRef = wsRef.collection('config').doc('dashboard');
   configCoresRef = wsRef.collection('config').doc('cores');
   var el = document.getElementById('codigoConviteTexto');
@@ -488,7 +574,7 @@ document.getElementById('btnCopiarCodigo').addEventListener('click', function(){
   }
 });
 
-var contas = [], lancamentos = [], transferencias = [], categorias = [], recorrencias = [];
+var contas = [], lancamentos = [], transferencias = [], categorias = [], recorrencias = [], dividas = [];
 var perfilAtual = 'Pessoal';
 var dashboardConfig = {};
 var modoEdicaoCategorias = false;
@@ -520,24 +606,26 @@ categoriasRef.get().then(function(snap){
       {nome:'Educação', visibilidade:'Pessoal', ordem:5},
       {nome:'Lazer', visibilidade:'Pessoal', ordem:6},
       {nome:'Assinaturas', visibilidade:'Pessoal', ordem:7},
-      {nome:'Outros', visibilidade:'Pessoal', ordem:8},
-      {nome:'Serviços', visibilidade:'Empresa', ordem:9},
-      {nome:'Impostos', visibilidade:'Empresa', ordem:10},
-      {nome:'Fornecedores', visibilidade:'Empresa', ordem:11},
-      {nome:'Vendas', visibilidade:'Empresa', ordem:12},
-      {nome:'Pro-labore', visibilidade:'Empresa', ordem:13},
-      {nome:'Outros', visibilidade:'Empresa', ordem:14}
+      {nome:'Dívidas', visibilidade:'Pessoal', ordem:8},
+      {nome:'Outros', visibilidade:'Pessoal', ordem:9},
+      {nome:'Serviços', visibilidade:'Empresa', ordem:10},
+      {nome:'Impostos', visibilidade:'Empresa', ordem:11},
+      {nome:'Fornecedores', visibilidade:'Empresa', ordem:12},
+      {nome:'Vendas', visibilidade:'Empresa', ordem:13},
+      {nome:'Pro-labore', visibilidade:'Empresa', ordem:14},
+      {nome:'Dívidas', visibilidade:'Empresa', ordem:15},
+      {nome:'Outros', visibilidade:'Empresa', ordem:16}
     ];
     defaults.forEach(function(c){ categoriasRef.add(c); });
   }
 });
 unsubscribers.push(contasRef.onSnapshot(function(snap){
   contas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-  renderContas(); renderDashboard(); popularFiltroConta();
+  renderContas(); renderDashboard(); popularFiltroConta(); renderDividas();
 }));
 unsubscribers.push(lancamentosRef.onSnapshot(function(snap){
   lancamentos = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-  renderTransacoes(); renderDashboard();
+  renderTransacoes(); renderDashboard(); renderDividas();
 }));
 unsubscribers.push(transferenciasRef.onSnapshot(function(snap){
   transferencias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
@@ -549,6 +637,10 @@ unsubscribers.push(categoriasRef.onSnapshot(function(snap){
 }));
 unsubscribers.push(recorrenciasRef.onSnapshot(function(snap){
   recorrencias = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+}));
+unsubscribers.push(dividasRef.onSnapshot(function(snap){
+  dividas = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  renderDividas();
 }));
 unsubscribers.push(configDashRef.onSnapshot(function(doc){
   dashboardConfig = doc.exists ? doc.data() : {ordem: ordemPadraoWidgets()};
@@ -567,7 +659,10 @@ unsubscribers.push(configCoresRef.onSnapshot(function(doc){
   document.getElementById('corTransferencia').value = cores.transferencia;
 }));
 
-setTimeout(gerarOcorrenciasPendentes, 3000);
+setTimeout(function(){
+  gerarOcorrenciasPendentes();
+  gerarParcelasDividas();
+}, 3000);
 
 }
 
@@ -751,8 +846,10 @@ function renderContas(){
   contas.filter(contaEhVisivel).forEach(function(c){
     var tr = document.createElement('tr');
     tr.style.cursor = 'pointer';
-    tr.innerHTML = '<td>'+c.descricao+'</td><td>'+c.tipo+'</td>'+
-      '<td>'+formatMoeda(saldoAtualConta(c.id))+'</td><td>'+formatMoeda(saldoPrevistoConta(c.id))+'</td>';
+    tr.innerHTML = '<td data-label="Descrição">'+c.descricao+'</td>'+
+      '<td data-label="Tipo">'+c.tipo+'</td>'+
+      '<td data-label="Saldo Atual">'+formatMoeda(saldoAtualConta(c.id))+'</td>'+
+      '<td data-label="Saldo Previsto">'+formatMoeda(saldoPrevistoConta(c.id))+'</td>';
     tr.addEventListener('click', function(){ abrirModalConta(c); });
     tbody.appendChild(tr);
   });
@@ -976,8 +1073,8 @@ function renderTransacoes(){
         tr.addEventListener('click', function(){ editarLancamento(idCapturado); });
       })(l.id);
     }
-    tr.innerHTML = '<td>'+l.data+'</td><td>'+nomeConta+'</td><td>'+l.categoria+'</td>'+
-      '<td>'+l.descricao+'</td><td>'+l.status+'</td><td>'+checkboxHtml+'</td><td>'+acaoHtml+'</td>';
+    tr.innerHTML = '<td data-label="Data">'+l.data+'</td><td data-label="Conta">'+nomeConta+'</td><td data-label="Categoria">'+l.categoria+'</td>'+
+      '<td data-label="Descrição">'+l.descricao+'</td><td data-label="Situação">'+l.status+'</td><td data-label="Pago">'+checkboxHtml+'</td><td data-label="">'+acaoHtml+'</td>';
     tbody.appendChild(tr);
   });
 }
@@ -1016,7 +1113,8 @@ function gerarOcorrenciasPendentes(){
 }
 document.getElementById('btnAtualizarRecorrencias').addEventListener('click', function(){
   gerarOcorrenciasPendentes();
-  alert('Recorrencias verificadas!');
+  gerarParcelasDividas();
+  alert('Recorrencias e dividas verificadas!');
 });
 
 function editarLancamento(id){
@@ -1184,9 +1282,146 @@ document.querySelectorAll('.toggle-btn').forEach(function(btn){
     document.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
     perfilAtual = btn.getAttribute('data-perfil');
-    renderContas(); renderTransacoes(); renderDashboard(); popularFiltroConta();
+    renderContas(); renderTransacoes(); renderDashboard(); popularFiltroConta(); renderDividas();
   });
 });
+
+function parcelasPagasDivida(dividaId){
+  return lancamentos.filter(function(l){ return l.dividaId === dividaId && l.status === 'Pago'; }).length;
+}
+function valorRestanteDivida(dv){
+  var pagas = parcelasPagasDivida(dv.id);
+  var restantes = Math.max(dv.quantidadeParcelas - pagas, 0);
+  return restantes * dv.valorParcela;
+}
+function mesesRestantesDivida(dv){
+  var pagas = parcelasPagasDivida(dv.id);
+  return Math.max(dv.quantidadeParcelas - pagas, 0);
+}
+function dividasVisiveis(){
+  return dividas.filter(function(dv){ return dv.perfil === perfilAtual; });
+}
+function renderDividas(){
+  var tbody = document.querySelector('#tabelaDividas tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  var lista = dividasVisiveis();
+  var totalRestante = 0, maiorMeses = 0, totalMensal = 0;
+  lista.forEach(function(dv){
+    var restante = valorRestanteDivida(dv);
+    var meses = mesesRestantesDivida(dv);
+    var pagas = parcelasPagasDivida(dv.id);
+    if(meses > 0){
+      totalRestante += restante;
+      maiorMeses = Math.max(maiorMeses, meses);
+      totalMensal += dv.valorParcela;
+    }
+    var tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    var statusTxt = meses <= 0 ? ' (Quitada)' : '';
+    tr.innerHTML = '<td data-label="Descrição">'+dv.descricao+statusTxt+'</td>'+
+      '<td data-label="Valor Restante">'+formatMoeda(restante)+'</td>'+
+      '<td data-label="Parcelas">'+pagas+'/'+dv.quantidadeParcelas+'</td>'+
+      '<td data-label="Parcela Mensal">'+formatMoeda(dv.valorParcela)+'</td>';
+    tr.addEventListener('click', function(){ abrirModalDivida(dv); });
+    tbody.appendChild(tr);
+  });
+  setText('resumoDividaTotal', formatMoeda(totalRestante));
+  setText('resumoDividaMeses', maiorMeses);
+  setText('resumoDividaMensal', formatMoeda(totalMensal));
+}
+function popularContaSelectDivida(){
+  var sel = document.getElementById('dividaConta');
+  sel.innerHTML = '';
+  contas.filter(contaEhVisivel).forEach(function(c){
+    var opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.descricao; sel.appendChild(opt);
+  });
+}
+function abrirModalDivida(dv){
+  document.getElementById('formDividaModal').reset();
+  popularContaSelectDivida();
+  document.getElementById('resumoComparacaoDivida').style.display = 'none';
+  if(dv){
+    document.getElementById('tituloModalDivida').textContent = 'Editar Dívida';
+    document.getElementById('dividaModalId').value = dv.id;
+    document.getElementById('dividaDescricao').value = dv.descricao;
+    document.getElementById('dividaValorTotal').value = dv.valorTotal;
+    document.getElementById('dividaValorParcela').value = dv.valorParcela;
+    document.getElementById('dividaDataVencimento').value = dv.dataInicio || '';
+    document.getElementById('dividaConta').value = dv.contaId;
+    document.getElementById('dividaQtdParcelas').value = dv.quantidadeParcelas;
+    document.getElementById('btnSalvarDivida').textContent = 'Salvar';
+    document.getElementById('btnExcluirDividaModal').style.display = 'block';
+
+    var totalParcelas = dv.valorParcela * dv.quantidadeParcelas;
+    var juros = totalParcelas - dv.valorTotal;
+    setText('cmpValorTotal', formatMoeda(dv.valorTotal));
+    setText('cmpTotalParcelas', formatMoeda(totalParcelas));
+    setText('cmpJuros', formatMoeda(juros));
+    setText('cmpParcelasPagas', parcelasPagasDivida(dv.id)+' de '+dv.quantidadeParcelas);
+    document.getElementById('resumoComparacaoDivida').style.display = 'block';
+  } else {
+    document.getElementById('tituloModalDivida').textContent = 'Nova Dívida';
+    document.getElementById('dividaModalId').value = '';
+    document.getElementById('btnSalvarDivida').textContent = 'Adicionar';
+    document.getElementById('btnExcluirDividaModal').style.display = 'none';
+  }
+  document.getElementById('modalDivida').style.display = 'flex';
+}
+function fecharModalDivida(){ document.getElementById('modalDivida').style.display = 'none'; }
+document.getElementById('btnAddDivida').addEventListener('click', function(){ abrirModalDivida(null); });
+document.getElementById('btnCloseModalDivida').addEventListener('click', fecharModalDivida);
+document.getElementById('formDividaModal').addEventListener('submit', function(e){
+  e.preventDefault();
+  var id = document.getElementById('dividaModalId').value;
+  var dataVenc = document.getElementById('dividaDataVencimento').value;
+  var dia = parseInt(dataVenc.split('-')[2]);
+  var dados = {
+    descricao: document.getElementById('dividaDescricao').value,
+    valorTotal: parseFloat(document.getElementById('dividaValorTotal').value),
+    valorParcela: parseFloat(document.getElementById('dividaValorParcela').value),
+    diaVencimento: dia,
+    dataInicio: dataVenc,
+    contaId: document.getElementById('dividaConta').value,
+    quantidadeParcelas: parseInt(document.getElementById('dividaQtdParcelas').value),
+    perfil: perfilAtual,
+    ativa: true
+  };
+  if(id){
+    dividasRef.doc(id).update(dados);
+  } else {
+    dividasRef.add(dados).then(function(){
+      gerarParcelasDividas();
+    });
+  }
+  fecharModalDivida();
+});
+document.getElementById('btnExcluirDividaModal').addEventListener('click', function(){
+  var id = document.getElementById('dividaModalId').value;
+  if(confirm('Excluir esta divida? As parcelas ja geradas nao serao excluidas automaticamente.')){
+    dividasRef.doc(id).delete();
+    fecharModalDivida();
+  }
+});
+function gerarParcelasDividas(){
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  var anoMesAtual = hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  dividas.filter(function(dv){ return dv.ativa !== false; }).forEach(function(dv){
+    var parcelasGeradas = lancamentos.filter(function(l){ return l.dividaId === dv.id; }).length;
+    if(parcelasGeradas >= dv.quantidadeParcelas) return;
+    var jaExisteEsseMes = lancamentos.some(function(l){
+      return l.dividaId === dv.id && l.data.substring(0,7) === anoMesAtual;
+    });
+    if(!jaExisteEsseMes){
+      var dataParcela = anoMesAtual+'-'+String(dv.diaVencimento).padStart(2,'0');
+      lancamentosRef.add({
+        data: dataParcela, perfil: dv.perfil, contaId: dv.contaId, categoria: 'Dívidas',
+        descricao: dv.descricao+' (parcela)', tipoMov: 'Despesa', subtipo: 'Fixa',
+        valor: dv.valorParcela, status: 'Programado', dividaId: dv.id
+      });
+    }
+  });
+}
 </script>
 </body>
 </html>
