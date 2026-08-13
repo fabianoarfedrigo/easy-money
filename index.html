@@ -116,19 +116,20 @@ tbody tr:hover{background:#fafbfc;}
 .link-alternar a{color:var(--azul);font-weight:600;text-decoration:none;cursor:pointer;}
 
 @media (max-width: 700px){
-  header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:10px 12px;gap:6px;}
-  .brand{order:1;position:static;transform:none;padding:0;justify-self:start;}
+  html, body{overflow-x:hidden;max-width:100%;}
+  header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px 10px;gap:4px;}
+  .brand{order:1;position:static;transform:none;padding:0;justify-self:start;min-width:0;overflow:hidden;}
   .brand-logo{display:none;}
-  .brand-logo-mobile{display:block;height:32px;}
-  .toggle-perfil{order:2;justify-self:center;}
-  .header-actions{order:3;justify-self:end;gap:4px;}
-  .icon-btn{padding:6px 10px;font-size:0.8em;}
-  .toggle-btn{padding:6px 12px;font-size:0.85em;}
+  .brand-logo-mobile{display:block;height:28px;}
+  .toggle-perfil{order:2;justify-self:center;min-width:0;}
+  .toggle-btn{padding:5px 10px;font-size:0.78em;}
+  .header-actions{order:3;justify-self:end;gap:3px;min-width:0;}
+  .icon-btn{padding:5px 8px;font-size:0.75em;white-space:nowrap;}
   nav#tabs{padding:8px 10px;}
   .tab-btn{padding:8px 14px;font-size:0.88em;}
-  main{padding:12px;}
-  .card, .chart-box, .pendentes-box{min-width:100%;}
-  .modal-box{padding:18px;}
+  main{padding:12px;max-width:100%;}
+  .card, .chart-box, .pendentes-box{min-width:100%;max-width:100%;}
+  .modal-box{padding:18px;max-width:100%;}
   .fab{width:52px;height:52px;font-size:28px;bottom:16px;right:16px;}
   form{padding:14px;}
   .filtros-transacoes{flex-direction:column;}
@@ -139,10 +140,10 @@ tbody tr:hover{background:#fafbfc;}
   .table-wrapper{overflow-x:visible;background:transparent;box-shadow:none;}
   .table-wrapper thead{display:none;}
   .table-wrapper tr{
-    background:white;border-radius:12px;margin-bottom:10px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);
+    background:white;border-radius:12px;margin-bottom:10px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);max-width:100%;
   }
   .table-wrapper td{
-    border:none;padding:6px 0;display:flex;justify-content:space-between;align-items:center;font-size:0.9em;text-align:right;
+    border:none;padding:6px 0;display:flex;justify-content:space-between;align-items:center;font-size:0.9em;text-align:right;flex-wrap:wrap;
   }
   .table-wrapper td::before{
     content:attr(data-label);font-weight:600;color:var(--cinza);margin-right:10px;text-align:left;
@@ -155,10 +156,12 @@ tbody tr:hover{background:#fafbfc;}
   <div class="lock-box">
     <img src="icon.png" alt="Easy Money">
     <h2 id="tituloLogin">Entrar</h2>
-    <input type="email" id="loginEmail" class="campo-login" placeholder="Email" required>
-    <input type="password" id="loginSenha" class="campo-login" placeholder="Senha" required>
-    <input type="text" id="loginConvite" class="campo-login" placeholder="Código de convite (opcional)" style="display:none;">
-    <button id="btnEntrar">Entrar</button>
+    <form id="formLogin" autocomplete="off">
+    <input type="email" id="loginEmail" class="campo-login" placeholder="Email" autocomplete="off" required>
+    <input type="password" id="loginSenha" class="campo-login" placeholder="Senha" autocomplete="new-password" required>
+    <input type="text" id="loginConvite" class="campo-login" placeholder="Código de convite (opcional)" autocomplete="off" style="display:none;">
+    <button type="submit" id="btnEntrar">Entrar</button>
+    </form>
     <p id="loginErro"></p>
     <p class="link-alternar"><span id="textoAlternar">Não tem conta?</span> <a href="#" id="linkAlternar">Criar conta</a></p>
   </div>
@@ -234,7 +237,7 @@ tbody tr:hover{background:#fafbfc;}
     </div>
     <div class="table-wrapper">
       <table id="tabelaTransacoes">
-        <thead><tr><th>Data</th><th>Conta</th><th>Categoria</th><th>Descrição</th><th>Situação</th><th>Pago</th><th></th></tr></thead>
+        <thead><tr><th>Data</th><th>Conta</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Situação</th><th>Pago</th><th></th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -536,7 +539,8 @@ document.getElementById('linkAlternar').addEventListener('click', function(e){
   document.getElementById('loginConvite').style.display = modoCadastro ? 'block' : 'none';
   document.getElementById('loginErro').style.display = 'none';
 });
-document.getElementById('btnEntrar').addEventListener('click', function(){
+document.getElementById('formLogin').addEventListener('submit', function(e){
+  e.preventDefault();
   var email = document.getElementById('loginEmail').value;
   var senha = document.getElementById('loginSenha').value;
   var erroEl = document.getElementById('loginErro');
@@ -1074,7 +1078,8 @@ function renderTransacoes(){
       })(l.id);
     }
     tr.innerHTML = '<td data-label="Data">'+l.data+'</td><td data-label="Conta">'+nomeConta+'</td><td data-label="Categoria">'+l.categoria+'</td>'+
-      '<td data-label="Descrição">'+l.descricao+'</td><td data-label="Situação">'+l.status+'</td><td data-label="Pago">'+checkboxHtml+'</td><td data-label="">'+acaoHtml+'</td>';
+      '<td data-label="Descrição">'+l.descricao+'</td><td data-label="Valor">'+formatMoeda(l.valor)+'</td><td data-label="Situação">'+l.status+'</td>'+
+      '<td data-label="Pago">'+checkboxHtml+'</td><td data-label="">'+acaoHtml+'</td>';
     tbody.appendChild(tr);
   });
 }
